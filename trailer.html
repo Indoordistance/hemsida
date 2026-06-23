@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<!--
+  Indoor Distance — Launch Commercial v5
+  POWERFUL edition — real footage + text overlays + cinematic cuts
+  © 2026 Indoor Distance. Proprietary.
+
+  ── HUR DU BYTER VIDEOS ──
+  Lägg dina klipp i mappen /videos och referera dem i scenes nedan.
+  Stöds: .MOV, .MP4 (de flesta webbläsare).
+  Tips: Konvertera till .MP4 (H.264) för max kompatibilitet.
+
+  ── HUR DU BYTER MUSIK ──
+  Pixabay → https://pixabay.com/music/ → Download → klistra in URL nedan.
+-->
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Indoor Distance — Friidrottens framtid</title>
+<meta name="description" content="AI-driven träningsapp för all friidrott. Snart lansering.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300..900;1,300..900&family=Inter+Tight:wght@300..900&family=JetBrains+Mono:wght@400..700&display=swap" rel="stylesheet">
+
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  font-family: 'Inter Tight', -apple-system, sans-serif;
+  background: #000;
+  color: #F2F2F5;
+  overflow: hidden;
+  min-height: 100vh;
+  height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+
+@keyframes punchIn {
+  0% { opacity: 0; transform: scale(0.5); filter: blur(20px); }
+  60% { opacity: 1; transform: scale(1.08); filter: blur(0); }
+  100% { opacity: 1; transform: scale(1); filter: blur(0); }
+}
+@keyframes slideUp {
+  0% { opacity: 0; transform: translateY(40px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes flashIn {
+  0% { opacity: 0; transform: scale(1.3); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+@keyframes ken-burns {
+  0% { transform: scale(1.1) translate(0, 0); }
+  100% { transform: scale(1.25) translate(-2%, -2%); }
+}
+@keyframes shake {
+  0%, 100% { transform: translate(0); }
+  20% { transform: translate(-3px, 2px); }
+  40% { transform: translate(3px, -1px); }
+  60% { transform: translate(-2px, -2px); }
+  80% { transform: translate(2px, 1px); }
+}
+@keyframes glow {
+  0%, 100% { text-shadow: 0 0 30px rgba(220,208,188,0.50), 0 0 60px rgba(220,208,188,0.30); }
+  50% { text-shadow: 0 0 50px rgba(220,208,188,0.80), 0 0 100px rgba(220,208,188,0.50); }
+}
+
+/* ── Background video layer ── */
+.video-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background: #000;
+}
+.video-bg video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  animation: ken-burns 8s ease-out infinite alternate;
+}
+.video-bg video.active {
+  opacity: 1;
+}
+
+/* ── Dark overlay for text legibility ── */
+.video-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(14,22,38,0.55) 0%, rgba(14,22,38,0.75) 60%, rgba(14,22,38,0.85) 100%),
+    radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.5) 100%);
+}
+
+.scanlines {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  background: linear-gradient(180deg, transparent 50%, rgba(220,208,188,0.04) 50%);
+  background-size: 100% 3px;
+  opacity: 0.5;
+}
+
+/* ── Powerful gold accent line ── */
+.accent-line {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 0%;
+  height: 4px;
+  background: linear-gradient(90deg, #DCD0BC, #FFFFFF, #DCD0BC);
+  z-index: 50;
+  box-shadow: 0 0 20px rgba(220,208,188,0.8);
+  transition: width 0.1s linear;
+}
+
+/* ── Progress ── */
+.progress-top {
+  position: fixed; top: 0; left: 0;
+  width: 100%; height: 3px;
+  background: rgba(255,255,255,0.04);
+  z-index: 100;
+}
+.progress-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, #DCD0BC, #FFFFFF);
+  box-shadow: 0 0 12px rgba(220,208,188,0.6);
+  transition: width 0.1s linear;
+}
+
+.ctrls {
+  position: fixed; top: 18px; right: 20px;
+  display: flex; gap: 8px;
+  z-index: 100;
+  opacity: 0;
+  transition: opacity .3s ease;
+}
+.ctrls.visible { opacity: 1; }
+.ctrl {
+  background: rgba(0,0,0,0.65);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.10);
+  color: #F2F2F5;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+.ctrl:hover { background: rgba(220,208,188,0.20); border-color: #DCD0BC; }
+.ctrl.icon { width: 34px; height: 34px; padding: 0; display: flex; align-items: center; justify-content: center; }
+
+/* ── Gate ── */
+.gate {
+  position: fixed; inset: 0;
+  background: #000;
+  z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+  padding: 30px;
+  transition: opacity .6s ease;
+}
+.gate.gone { opacity: 0; pointer-events: none; }
+.gate-content { text-align: center; max-width: 480px; }
+.gate-eyebrow {
+  font-size: 11px; color: #DCD0BC;
+  font-weight: 800; letter-spacing: 0.30em;
+  text-transform: uppercase; margin-bottom: 20px;
+  opacity: 0; animation: slideUp 0.6s ease 0.2s forwards;
+}
+.gate h1 {
+  font-family: 'Fraunces', Georgia, serif;
+  font-style: italic; font-weight: 400;
+  font-size: clamp(40px, 9vw, 76px);
+  color: #F2F2F5;
+  letter-spacing: -0.04em;
+  line-height: 0.95;
+  margin-bottom: 12px;
+  opacity: 0; animation: slideUp 0.8s ease 0.4s forwards;
+}
+.gate h1 strong { display: block; color: #DCD0BC; font-weight: 500; }
+.gate p {
+  font-size: 14px; color: rgba(255,255,255,0.55);
+  margin-bottom: 36px;
+  opacity: 0; animation: slideUp 0.8s ease 0.8s forwards;
+}
+.gate-btn {
+  display: inline-flex; align-items: center; gap: 12px;
+  background: #DCD0BC; color: #0E1626;
+  border: none; padding: 18px 38px;
+  border-radius: 999px;
+  font-family: inherit; font-size: 13px;
+  font-weight: 800; letter-spacing: 0.10em;
+  text-transform: uppercase; cursor: pointer;
+  opacity: 0;
+  animation: slideUp 0.8s ease 1.0s forwards, pulse 2.4s ease-in-out 2s infinite;
+  box-shadow: 0 20px 50px rgba(220,208,188,0.40);
+  transition: transform .2s ease;
+}
+.gate-btn:hover { transform: scale(1.05); }
+.gate-tri {
+  width: 0; height: 0;
+  border-left: 12px solid #0E1626;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+}
+.gate-mute {
+  display: block; margin: 14px auto 0;
+  background: transparent; border: none;
+  color: rgba(255,255,255,0.40);
+  font-size: 11px; cursor: pointer;
+  letter-spacing: 0.10em; text-transform: uppercase;
+  opacity: 0; animation: slideUp 0.8s ease 1.3s forwards;
+}
+.gate-mute:hover { color: #DCD0BC; }
+
+/* ── Scenes — text overlays ── */
+.scene {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 10;
+  padding: 30px;
+  transition: opacity 0.25s ease;
+}
+.scene.active { opacity: 1; pointer-events: auto; }
+
+/* ── BIG TEXT ── */
+.word-stack { text-align: center; }
+.word-stack .word {
+  font-family: 'Fraunces', Georgia, serif;
+  font-style: italic; font-weight: 500;
+  font-size: clamp(56px, 14vw, 160px);
+  color: #FFF;
+  letter-spacing: -0.04em;
+  line-height: 0.85;
+  display: block;
+  opacity: 0;
+  animation: punchIn 0.3s cubic-bezier(.34,1.56,.64,1) forwards;
+  text-shadow: 0 0 40px rgba(0,0,0,0.8), 0 4px 30px rgba(0,0,0,0.6);
+}
+.word-stack .word.gold {
+  color: #DCD0BC;
+  text-shadow: 0 0 40px rgba(220,208,188,0.6), 0 0 80px rgba(220,208,188,0.4);
+  animation: punchIn 0.3s cubic-bezier(.34,1.56,.64,1) forwards, glow 2s ease-in-out infinite;
+}
+.word-stack .word.outline {
+  -webkit-text-stroke: 2px #DCD0BC;
+  color: transparent;
+  text-shadow: none;
+}
+.word-stack .word.huge { font-size: clamp(72px, 18vw, 220px); }
+.word-stack .word.small {
+  font-family: 'Inter Tight', sans-serif;
+  font-style: normal; font-weight: 800;
+  font-size: clamp(14px, 2vw, 22px);
+  letter-spacing: 0.30em;
+  text-transform: uppercase;
+  margin-top: 12px; margin-bottom: 12px;
+  color: #DCD0BC;
+}
+
+/* ── DATA HIT ── */
+.data-hit {
+  text-align: center;
+  background: linear-gradient(135deg, rgba(14,22,38,0.55), rgba(14,22,38,0.30));
+  backdrop-filter: blur(8px);
+  padding: 30px 40px;
+  border-radius: 22px;
+  border: 1px solid rgba(220,208,188,0.20);
+}
+.data-hit-eyebrow {
+  font-size: clamp(10px, 1.5vw, 13px);
+  color: #DCD0BC;
+  font-weight: 800;
+  letter-spacing: 0.30em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  opacity: 0;
+  animation: slideUp 0.2s ease forwards;
+}
+.data-hit-number {
+  font-family: 'Fraunces', Georgia, serif;
+  font-style: italic; font-weight: 500;
+  font-size: clamp(96px, 22vw, 220px);
+  color: #DCD0BC;
+  line-height: 0.9;
+  letter-spacing: -0.06em;
+  text-shadow: 0 0 100px rgba(220,208,188,0.60), 0 6px 40px rgba(0,0,0,0.6);
+  opacity: 0;
+  animation: punchIn 0.4s cubic-bezier(.34,1.56,.64,1) 0.1s forwards;
+  margin: 6px 0;
+}
+.data-hit-number small { font-size: 0.45em; opacity: 0.6; }
+.data-hit-label {
+  font-family: 'Inter Tight', sans-serif;
+  font-weight: 700;
+  font-size: clamp(14px, 2.5vw, 22px);
+  color: #F2F2F5;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  max-width: 680px;
+  line-height: 1.3;
+  opacity: 0;
+  animation: slideUp 0.3s ease 0.3s forwards;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.8);
+}
+.data-hit-cite {
+  margin-top: 12px;
+  font-size: clamp(10px, 1.2vw, 12px);
+  color: rgba(255,255,255,0.65);
+  font-weight: 600;
+  letter-spacing: 0.10em;
+  opacity: 0;
+  animation: slideUp 0.3s ease 0.5s forwards;
+}
+
+/* ── EVENTS RUSH ── */
+.events-rush {
+  text-align: center;
+  width: 100%;
+  max-width: 900px;
+  background: linear-gradient(135deg, rgba(14,22,38,0.40), rgba(14,22,38,0.20));
+  backdrop-filter: blur(6px);
+  padding: 30px;
+  border-radius: 22px;
+}
+.events-rush-title {
+  font-family: 'Fraunces', Georgia, serif;
+  font-style: italic; font-weight: 500;
+  font-size: clamp(40px, 9vw, 88px);
+  color: #FFF;
+  letter-spacing: -0.03em;
+  line-height: 0.9;
+  margin-bottom: 24px;
+  opacity: 0;
+  animation: punchIn 0.3s cubic-bezier(.34,1.56,.64,1) forwards;
+  text-shadow: 0 4px 30px rgba(0,0,0,0.7);
+}
+.events-rush-title strong { color: #DCD0BC; font-weight: 500; }
+.events-rush-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 5px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+.events-rush-chip {
+  background: rgba(0,0,0,0.55);
+  border: 1px solid rgba(220,208,188,0.30);
+  border-radius: 10px;
+  padding: 12px 4px;
+  text-align: center;
+  opacity: 0;
+  transform: scale(0.5);
+  animation: punchIn 0.2s cubic-bezier(.34,1.56,.64,1) forwards;
+  backdrop-filter: blur(6px);
+}
+.events-rush-chip .em { font-size: 22px; display: block; }
+.events-rush-chip .nm { font-size: 8px; font-weight: 700; color: #DCD0BC; margin-top: 3px; letter-spacing: 0.04em; }
+
+/* ── SOURCES STORM ── */
+.sources-storm {
+  text-align: center;
+  width: 100%;
+  max-width: 800px;
+  background: linear-gradient(135deg, rgba(14,22,38,0.45), rgba(14,22,38,0.25));
+  backdrop-filter: blur(8px);
+  padding: 30px;
+  border-radius: 22px;
+}
+.sources-storm-title {
+  font-family: 'Fraunces', Georgia, serif;
+  font-style: italic; font-weight: 500;
+  font-size: clamp(36px, 8vw, 76px);
+  color: #FFF;
+  letter-spacing: -0.03em;
+  margin-bottom: 6px;
+  line-height: 0.9;
+  opacity: 0;
+  animation: punchIn 0.3s cubic-bezier(.34,1.56,.64,1) forwards;
+  text-shadow: 0 4px 30px rgba(0,0,0,0.7);
+}
+.sources-storm-title strong { color: #DCD0BC; font-weight: 500; }
+.sources-storm-sub {
+  font-size: 12px;
+  color: #DCD0BC;
+  font-weight: 800;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+  opacity: 0;
+  animation: slideUp 0.3s ease 0.1s forwards;
+}
+.sources-storm-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.src-storm-badge {
+  background: rgba(0,0,0,0.65);
+  border: 1.5px solid rgba(220,208,188,0.45);
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #DCD0BC;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0;
+  transform: scale(0.6);
+  animation: punchIn 0.15s cubic-bezier(.34,1.56,.64,1) forwards;
+  backdrop-filter: blur(8px);
+}
+
+/* ── LOGO ── */
+.logo-final { text-align: center; }
+.logo-circle {
+  width: 180px; height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(26,37,64,0.95), rgba(14,22,38,0.95));
+  backdrop-filter: blur(8px);
+  border: 3px solid #DCD0BC;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+  box-shadow: 0 0 100px rgba(220,208,188,0.50), inset 0 4px 20px rgba(255,255,255,0.05);
+  opacity: 0;
+  transform: scale(0.4) rotate(-15deg);
+  animation: punchIn 0.4s cubic-bezier(.34,1.56,.64,1) forwards;
+}
+.logo-letter {
+  font-family: 'Fraunces', Georgia, serif;
+  font-style: italic;
+  font-weight: 600;
+  font-size: 100px;
+  color: #DCD0BC;
+  letter-spacing: -0.05em;
+  text-shadow: 0 0 30px rgba(220,208,188,0.8);
+  line-height: 1;
+  animation: glow 2s ease-in-out infinite;
+}
+.logo-name {
+  font-family: 'Fraunces', Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(36px, 8vw, 70px);
+  color: #FFF;
+  letter-spacing: -0.04em;
+  margin-bottom: 12px;
+  opacity: 0;
+  animation: slideUp 0.4s ease 0.2s forwards;
+  text-shadow: 0 4px 30px rgba(0,0,0,0.7);
+}
+.logo-tag {
+  font-size: 12px;
+  font-weight: 800;
+  color: #DCD0BC;
+  letter-spacing: 0.30em;
+  text-transform: uppercase;
+  opacity: 0;
+  animation: slideUp 0.4s ease 0.4s forwards;
+}
+
+/* ── WAITLIST ── */
+.waitlist-block {
+  text-align: center;
+  max-width: 600px;
+  width: 100%;
+  background: linear-gradient(135deg, rgba(14,22,38,0.55), rgba(14,22,38,0.35));
+  backdrop-filter: blur(10px);
+  padding: 40px 30px;
+  border-radius: 24px;
+  border: 1px solid rgba(220,208,188,0.20);
+}
+.wl-eyebrow {
+  font-size: 12px;
+  color: #DCD0BC;
+  font-weight: 800;
+  letter-spacing: 0.30em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  opacity: 0;
+  animation: slideUp 0.3s ease forwards;
+}
+.wl-headline {
+  font-family: 'Fraunces', Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(44px, 10vw, 88px);
+  color: #FFF;
+  letter-spacing: -0.04em;
+  line-height: 0.95;
+  margin-bottom: 12px;
+  opacity: 0;
+  animation: punchIn 0.4s cubic-bezier(.34,1.56,.64,1) 0.1s forwards;
+  text-shadow: 0 4px 30px rgba(0,0,0,0.7);
+}
+.wl-headline strong { color: #DCD0BC; display: block; }
+.wl-date {
+  font-size: 14px;
+  color: rgba(255,255,255,0.85);
+  font-weight: 600;
+  margin-bottom: 26px;
+  letter-spacing: 0.02em;
+  opacity: 0;
+  animation: slideUp 0.3s ease 0.4s forwards;
+}
+.wl-date strong { color: #DCD0BC; font-weight: 800; }
+.wl-form {
+  display: flex;
+  gap: 8px;
+  max-width: 460px;
+  margin: 0 auto;
+  opacity: 0;
+  animation: slideUp 0.3s ease 0.6s forwards;
+}
+.wl-input {
+  flex: 1;
+  background: rgba(0,0,0,0.45);
+  border: 1.5px solid rgba(255,255,255,0.25);
+  color: #FFF;
+  padding: 16px 22px;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+  transition: all .2s ease;
+  backdrop-filter: blur(8px);
+}
+.wl-input:focus { border-color: #DCD0BC; background: rgba(220,208,188,0.10); }
+.wl-input::placeholder { color: rgba(255,255,255,0.50); }
+.wl-btn {
+  background: #DCD0BC;
+  color: #0E1626;
+  border: none;
+  padding: 16px 28px;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(220,208,188,0.40);
+  transition: all .25s ease;
+  white-space: nowrap;
+}
+.wl-btn:hover { transform: translateY(-2px) scale(1.05); }
+
+/* ── QUOTE ── */
+.quote-flash { text-align: center; max-width: 800px; }
+.quote-line {
+  font-family: 'Fraunces', Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(34px, 7vw, 64px);
+  color: #FFF;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  margin-bottom: 14px;
+  opacity: 0;
+  animation: slideUp 0.3s ease forwards;
+  text-shadow: 0 4px 30px rgba(0,0,0,0.7);
+}
+.quote-line strong { color: #DCD0BC; font-weight: 500; }
+.quote-author {
+  font-size: 11px;
+  color: rgba(255,255,255,0.65);
+  font-weight: 700;
+  letter-spacing: 0.30em;
+  text-transform: uppercase;
+  opacity: 0;
+  animation: slideUp 0.3s ease 0.3s forwards;
+}
+
+/* ── FEATURES FLASH ── */
+.features-flash {
+  text-align: center;
+  max-width: 1000px;
+  background: linear-gradient(135deg, rgba(14,22,38,0.45), rgba(14,22,38,0.25));
+  backdrop-filter: blur(8px);
+  padding: 30px;
+  border-radius: 22px;
+}
+.features-title {
+  font-family: 'Fraunces', Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(36px, 8vw, 72px);
+  color: #FFF;
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+  margin-bottom: 24px;
+  opacity: 0;
+  animation: punchIn 0.3s cubic-bezier(.34,1.56,.64,1) forwards;
+  text-shadow: 0 4px 30px rgba(0,0,0,0.7);
+}
+.features-title strong { color: #DCD0BC; font-weight: 500; }
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+}
+.feature-tile {
+  background: rgba(0,0,0,0.55);
+  border: 1px solid rgba(220,208,188,0.35);
+  border-radius: 14px;
+  padding: 18px 14px;
+  text-align: center;
+  opacity: 0;
+  transform: scale(0.85);
+  animation: punchIn 0.25s cubic-bezier(.34,1.56,.64,1) forwards;
+  backdrop-filter: blur(8px);
+}
+.feature-tile-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+  display: block;
+}
+.feature-tile-title {
+  font-family: 'Inter Tight', sans-serif;
+  font-weight: 800;
+  font-size: 11px;
+  color: #DCD0BC;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.feature-tile-desc {
+  font-size: 11px;
+  color: rgba(255,255,255,0.85);
+  line-height: 1.4;
+}
+
+/* ── REPLAY ── */
+.replay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.92);
+  backdrop-filter: blur(20px);
+  z-index: 999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+}
+.replay.visible { display: flex; }
+.replay-card { text-align: center; max-width: 480px; }
+.replay-card h2 {
+  font-family: 'Fraunces', Georgia, serif;
+  font-style: italic; font-weight: 500;
+  font-size: 36px; color: #F2F2F5;
+  letter-spacing: -0.03em; margin-bottom: 14px;
+}
+.replay-card p {
+  font-size: 14px; color: rgba(255,255,255,0.70);
+  line-height: 1.6; margin-bottom: 24px;
+}
+.replay-buttons { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+@media (max-width: 600px) {
+  .events-rush-grid { grid-template-columns: repeat(4, 1fr); }
+  .events-rush-chip .em { font-size: 20px; }
+  .wl-form { flex-direction: column; }
+  .data-hit-number { font-size: 100px; }
+  .features-grid { grid-template-columns: repeat(2, 1fr); }
+  .features-flash, .events-rush, .sources-storm, .waitlist-block { padding: 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<!--
+  🎵 BAKGRUNDSMUSIK — Pixabay royalty-fri
+  Byt URL nedan om du vill ha annan låt.
+-->
+<audio id="bgMusic" preload="auto" crossorigin="anonymous">
+  <source src="https://cdn.pixabay.com/download/audio/2024/02/16/audio_70b48e1ec1.mp3" type="audio/mpeg">
+  <source src="https://cdn.pixabay.com/audio/2023/05/16/audio_166b9c5a47.mp3" type="audio/mpeg">
+  <source src="https://cdn.pixabay.com/audio/2022/10/25/audio_dbcc3eb635.mp3" type="audio/mpeg">
+</audio>
+
+<!--
+  ═══════════════════════════════════════════════════════════════
+  🎬 VIDEOKLIPP — ORDNAD LISTA
+  ═══════════════════════════════════════════════════════════════
+
+  💡 HUR DU REDIGERAR:
+  För att byta vilken video som visas i en scen, ändra "data-src"
+  nedan. Klipp som visar DIG (Erik) bör vara först.
+
+  📌 Markera dina häck-klipp genom att flytta upp dem som v0, v1, v2 etc.
+  (Klippen visas i nummerordning genom trailern)
+
+  ⭐ REKOMMENDATION:
+  - v0-v6: Dina egna klipp (häck, kast, etc.) — viktigast för impact
+  - v7-v15: Övriga klipp eller Higgsfield-genererade
+  ═══════════════════════════════════════════════════════════════
+-->
+<div class="video-bg" id="videoBg">
+  <!-- ── DINA EGNA KLIPP (flytta runt baserat på vad de visar) ── -->
+  <video id="v0" data-src="videos/IMG_0918.MOV" muted playsinline preload="auto"></video>
+  <video id="v1" data-src="videos/IMG_0921.MOV" muted playsinline preload="auto"></video>
+  <video id="v2" data-src="videos/IMG_0923.MOV" muted playsinline preload="metadata"></video>
+  <video id="v3" data-src="videos/IMG_0927.MOV" muted playsinline preload="metadata"></video>
+  <video id="v4" data-src="videos/IMG_0932.MOV" muted playsinline preload="metadata"></video>
+  <video id="v5" data-src="videos/IMG_0938.MOV" muted playsinline preload="metadata"></video>
+  <video id="v6" data-src="videos/IMG_0940.MOV" muted playsinline preload="metadata"></video>
+  <video id="v7" data-src="videos/IMG_0007.MOV" muted playsinline preload="metadata"></video>
+  <video id="v8" data-src="videos/IMG_0011.MOV" muted playsinline preload="metadata"></video>
+  <video id="v9" data-src="videos/IMG_0017.MOV" muted playsinline preload="metadata"></video>
+  <video id="v10" data-src="videos/IMG_0021.MOV" muted playsinline preload="metadata"></video>
+  <video id="v11" data-src="videos/IMG_0022.MOV" muted playsinline preload="metadata"></video>
+  <video id="v12" data-src="videos/IMG_2734.MOV" muted playsinline preload="metadata"></video>
+  <video id="v13" data-src="videos/IMG_6761.MOV" muted playsinline preload="metadata"></video>
+  <video id="v14" data-src="videos/OUFD8838.MP4" muted playsinline preload="metadata"></video>
+  <video id="v15" data-src="videos/IMG_E0011.MOV" muted playsinline preload="metadata"></video>
+</div>
+
+<div class="video-overlay"></div>
+<div class="scanlines"></div>
+<div class="accent-line" id="accentLine"></div>
+
+<!-- GATE -->
+<div class="gate" id="gate">
+  <div class="gate-content">
+    <div class="gate-eyebrow">Indoor Distance</div>
+    <h1>Du tror du<br><strong>vet vad som krävs.</strong></h1>
+    <p>Klicka för att se framtiden av friidrott.</p>
+    <button class="gate-btn" onclick="enterWithSound()">
+      <span class="gate-tri"></span>
+      Spela
+    </button>
+    <button class="gate-mute" onclick="enterMuted()">Spela utan ljud</button>
+  </div>
+</div>
+
+<div class="progress-top"><div class="progress-fill" id="progressFill"></div></div>
+<div class="ctrls" id="ctrls">
+  <button class="ctrl icon" id="muteBtn" onclick="toggleMute()" title="Mute">🔊</button>
+  <button class="ctrl" onclick="skipScene()">Skip</button>
+  <button class="ctrl" onclick="restartTrailer()">↻</button>
+</div>
+
+<!-- ════════ SCENER ════════ -->
+
+<!-- 0: HOOK 1 (1.0s) — Video: athletic action -->
+<div class="scene active" id="s0" data-video="0">
+  <div class="word-stack">
+    <span class="word huge">FORTSATT</span>
+  </div>
+</div>
+
+<!-- 1: HOOK 2 (1.0s) — Video: throw -->
+<div class="scene" id="s1" data-video="1">
+  <div class="word-stack">
+    <span class="word huge outline" style="animation-delay:0s">ÄR INTE</span>
+    <span class="word huge gold" style="animation-delay:0.1s">NOG.</span>
+  </div>
+</div>
+
+<!-- 2: STATEMENT (1.3s) — Video: motion -->
+<div class="scene" id="s2" data-video="2">
+  <div class="word-stack">
+    <span class="word small">25+ GRENAR · 1 APP</span>
+    <span class="word" style="animation-delay:0.05s">FRIIDROTTENS</span>
+    <span class="word gold" style="animation-delay:0.15s">FRAMTID.</span>
+  </div>
+</div>
+
+<!-- 3: DATA 1 — Angle (1.2s) -->
+<div class="scene" id="s3" data-video="3">
+  <div class="data-hit">
+    <div class="data-hit-eyebrow">OPTIMAL VINKEL · SPJUT</div>
+    <div class="data-hit-number">32°<small>–36°</small></div>
+    <div class="data-hit-label">AI:n mäter — varje kast.</div>
+    <div class="data-hit-cite">Judge 2016 · Bartonietz</div>
+  </div>
+</div>
+
+<!-- 4: DATA 2 — Sleep (1.2s) -->
+<div class="scene" id="s4" data-video="4">
+  <div class="data-hit">
+    <div class="data-hit-eyebrow">SÖMN HÖJER PRESTATION</div>
+    <div class="data-hit-number">+9%</div>
+    <div class="data-hit-label">10h sömn = bättre reaktion.</div>
+    <div class="data-hit-cite">Mah 2011 · Stanford</div>
+  </div>
+</div>
+
+<!-- 5: DATA 3 — Injury (1.2s) -->
+<div class="scene" id="s5" data-video="5">
+  <div class="data-hit">
+    <div class="data-hit-eyebrow">SKADERISK · TRÄNINGSLAST</div>
+    <div class="data-hit-number">4×</div>
+    <div class="data-hit-label">Vi varnar innan kroppen ger upp.</div>
+    <div class="data-hit-cite">Gabbett 2016 · BJSM</div>
+  </div>
+</div>
+
+<!-- 6: DATA 4 — Precision (1.2s) -->
+<div class="scene" id="s6" data-video="6">
+  <div class="data-hit">
+    <div class="data-hit-eyebrow">PRECISION · MÄTNING</div>
+    <div class="data-hit-number">1.5<small>m</small></div>
+    <div class="data-hit-label">Felmarginal. På par med dyra labb.</div>
+    <div class="data-hit-cite">Interna tester · Auto-kalibrering</div>
+  </div>
+</div>
+
+<!-- 7: ALL EVENTS (1.8s) -->
+<div class="scene" id="s7" data-video="7">
+  <div class="events-rush">
+    <div class="events-rush-title"><strong>25+</strong> grenar.<br>Allt på 1 plats.</div>
+    <div class="events-rush-grid">
+      <div class="events-rush-chip" style="animation-delay:0.0s"><span class="em">🎯</span><div class="nm">SPJUT</div></div>
+      <div class="events-rush-chip" style="animation-delay:0.02s"><span class="em">🥏</span><div class="nm">DISKUS</div></div>
+      <div class="events-rush-chip" style="animation-delay:0.04s"><span class="em">⚒️</span><div class="nm">SLÄGGA</div></div>
+      <div class="events-rush-chip" style="animation-delay:0.06s"><span class="em">🏐</span><div class="nm">KULA</div></div>
+      <div class="events-rush-chip" style="animation-delay:0.08s"><span class="em">📏</span><div class="nm">LÄNGD</div></div>
+      <div class="events-rush-chip" style="animation-delay:0.10s"><span class="em">🦘</span><div class="nm">TRESTEG</div></div>
+      <div class="events-rush-chip" style="animation-delay:0.12s"><span class="em">🚀</span><div class="nm">HÖJD</div></div>
+      <div class="events-rush-chip" style="animation-delay:0.14s"><span class="em">🪄</span><div class="nm">STAV</div></div>
+      <div class="events-rush-chip" style="animation-delay:0.16s"><span class="em">⚡</span><div class="nm">60M</div></div>
+      <div class="events-rush-chip" style="animation-delay:0.18s"><span class="em">⚡</span><div class="nm">100M</div></div>
+      <div class="events-rush-chip" style="animation-delay:0.20s"><span class="em">⚡</span><div class="nm">200M</div></div>
+      <div class="events-rush-chip" style="animation-delay:0.22s"><span class="em">⚡</span><div class="nm">400M</div></div>
+      <div class="events-rush-chip" style="animation-delay:0.24s"><span class="em">🚧</span><div class="nm">60M H</div></div>
+      <div class="events-rush-chip" style="animation-delay:0.26s"><span class="em">🚧</span><div class="nm">100M H</div></div>
+      <div class="events-rush-chip" style="animation-delay:0.28s"><span class="em">🚧</span><div class="nm">110M H</div></div>
+      <div class="events-rush-chip" style="animation-delay:0.30s"><span class="em">🚧</span><div class="nm">400M H</div></div>
+      <div class="events-rush-chip" style="animation-delay:0.32s"><span class="em">🏃</span><div class="nm">800M</div></div>
+      <div class="events-rush-chip" style="animation-delay:0.34s"><span class="em">🏃</span><div class="nm">1500M</div></div>
+      <div class="events-rush-chip" style="animation-delay:0.36s"><span class="em">🏃</span><div class="nm">3000M</div></div>
+      <div class="events-rush-chip" style="animation-delay:0.38s"><span class="em">🏃</span><div class="nm">5000M</div></div>
+      <div class="events-rush-chip" style="animation-delay:0.40s"><span class="em">🏅</span><div class="nm">10000M</div></div>
+      <div class="events-rush-chip" style="animation-delay:0.42s"><span class="em">🏅</span><div class="nm">MARA</div></div>
+      <div class="events-rush-chip" style="animation-delay:0.44s"><span class="em">🏆</span><div class="nm">7-KAMP</div></div>
+      <div class="events-rush-chip" style="animation-delay:0.46s;background:rgba(220,208,188,0.30);border-color:#DCD0BC"><span class="em">✨</span><div class="nm">FLER</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 8: FEATURES FLASH (1.8s) -->
+<div class="scene" id="s8" data-video="8">
+  <div class="features-flash">
+    <div class="features-title">5 funktioner.<br><strong>1 app.</strong></div>
+    <div class="features-grid">
+      <div class="feature-tile" style="animation-delay:0s">
+        <span class="feature-tile-icon">📹</span>
+        <div class="feature-tile-title">AI-mätning</div>
+        <div class="feature-tile-desc">Pose-detektion · alla grenar</div>
+      </div>
+      <div class="feature-tile" style="animation-delay:0.08s">
+        <span class="feature-tile-icon">🩹</span>
+        <div class="feature-tile-title">Skadeskydd</div>
+        <div class="feature-tile-desc">Förebygger innan</div>
+      </div>
+      <div class="feature-tile" style="animation-delay:0.16s">
+        <span class="feature-tile-icon">🤖</span>
+        <div class="feature-tile-title">Kast-AI</div>
+        <div class="feature-tile-desc">Strikt vetenskap</div>
+      </div>
+      <div class="feature-tile" style="animation-delay:0.24s">
+        <span class="feature-tile-icon">📚</span>
+        <div class="feature-tile-title">Lektioner</div>
+        <div class="feature-tile-desc">60-sek kunskap</div>
+      </div>
+      <div class="feature-tile" style="animation-delay:0.32s">
+        <span class="feature-tile-icon">🏆</span>
+        <div class="feature-tile-title">Tävlingsläge</div>
+        <div class="feature-tile-desc">Pre-comp + live</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 9: TECHNIQUE STATEMENT (1.5s) -->
+<div class="scene" id="s9" data-video="9">
+  <div class="word-stack">
+    <span class="word small">VARJE RÖRELSE · VARJE VINKEL</span>
+    <span class="word" style="animation-delay:0.05s">DIN TEKNIK</span>
+    <span class="word gold" style="animation-delay:0.15s">SES.</span>
+  </div>
+</div>
+
+<!-- 10: PRECISION STATEMENT (1.5s) -->
+<div class="scene" id="s10" data-video="10">
+  <div class="word-stack">
+    <span class="word small">PEER-REVIEWED VETENSKAP</span>
+    <span class="word" style="animation-delay:0.05s">INGA</span>
+    <span class="word gold" style="animation-delay:0.15s">GISSNINGAR.</span>
+  </div>
+</div>
+
+<!-- 11: HEALTH STATEMENT (1.5s) -->
+<div class="scene" id="s11" data-video="11">
+  <div class="word-stack">
+    <span class="word small">SKADEFÖREBYGGANDE AI</span>
+    <span class="word" style="animation-delay:0.05s">FÖRST</span>
+    <span class="word gold" style="animation-delay:0.15s">HÄLSAN.</span>
+  </div>
+</div>
+
+<!-- 12: SOURCES (1.7s) -->
+<div class="scene" id="s12" data-video="12">
+  <div class="sources-storm">
+    <div class="sources-storm-title">Vetenskap.<br><strong>Inte gissningar.</strong></div>
+    <div class="sources-storm-sub">Verifierbar · varje råd</div>
+    <div class="sources-storm-row">
+      <div class="src-storm-badge" style="animation-delay:0.00s">🏛️ RF</div>
+      <div class="src-storm-badge" style="animation-delay:0.04s">🏛️ SFIF</div>
+      <div class="src-storm-badge" style="animation-delay:0.08s">🏛️ World Athletics</div>
+      <div class="src-storm-badge" style="animation-delay:0.12s">🏛️ ACSM</div>
+      <div class="src-storm-badge" style="animation-delay:0.16s">🏛️ Folkhälsa</div>
+      <div class="src-storm-badge" style="animation-delay:0.20s">📊 BJSM</div>
+      <div class="src-storm-badge" style="animation-delay:0.24s">📊 Sleep journal</div>
+      <div class="src-storm-badge" style="animation-delay:0.28s">📊 Bartonietz</div>
+      <div class="src-storm-badge" style="animation-delay:0.32s">📖 Bompa</div>
+      <div class="src-storm-badge" style="animation-delay:0.36s">📖 Walker</div>
+    </div>
+  </div>
+</div>
+
+<!-- 13: QUOTE (1.4s) -->
+<div class="scene" id="s13" data-video="13">
+  <div class="quote-flash">
+    <div class="quote-line">Vila är hälften av träningen.<br><strong>Precision är resten.</strong></div>
+    <div class="quote-author">— Indoor Distance Filosofi</div>
+  </div>
+</div>
+
+<!-- 14: LOGO (1.6s) -->
+<div class="scene" id="s14" data-video="14">
+  <div class="logo-final">
+    <div class="logo-circle"><div class="logo-letter">D</div></div>
+    <div class="logo-name">Indoor Distance</div>
+    <div class="logo-tag">AI · Vetenskap · Friidrott</div>
+  </div>
+</div>
+
+<!-- 15: WAITLIST (3s) -->
+<div class="scene" id="s15" data-video="15">
+  <div class="waitlist-block">
+    <div class="wl-eyebrow">SNART TILLGÄNGLIG</div>
+    <div class="wl-headline">Var bland<br><strong>de första.</strong></div>
+    <div class="wl-date">Lansering <strong>Q3 2026</strong> · 50% rabatt år 1</div>
+    <form class="wl-form" action="https://formspree.io/f/xykdnpno" method="POST" onsubmit="return handleWaitlist(event)">
+      <input type="email" name="email" class="wl-input" placeholder="Din e-post" required>
+      <input type="hidden" name="_subject" value="Indoor Distance — Waitlist">
+      <input type="hidden" name="source" value="trailer-v5">
+      <button type="submit" class="wl-btn">Säkra plats →</button>
+    </form>
+  </div>
+</div>
+
+<div class="replay" id="replay">
+  <div class="replay-card">
+    <h2>Vi ses snart.</h2>
+    <p>Q3 2026 — gör dig redo. Säkra din plats på waitlist eller titta om.</p>
+    <div class="replay-buttons">
+      <button class="ctrl" onclick="restartTrailer()" style="background:rgba(220,208,188,0.10);border-color:rgba(220,208,188,0.40);color:#DCD0BC;padding:12px 22px">↻ Titta igen</button>
+      <a href="index.html" class="ctrl" style="text-decoration:none;padding:12px 22px">Hemsidan</a>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+// 🎵 AUDIO
+// ══════════════════════════════════════════════════
+var bgMusic = document.getElementById('bgMusic');
+var musicError = false;
+var muted = false;
+
+bgMusic.addEventListener('error', function(){ musicError = true; });
+bgMusic.volume = 0.55;
+
+function toggleMute() {
+  muted = !muted;
+  var btn = document.getElementById('muteBtn');
+  if (btn) btn.textContent = muted ? '🔇' : '🔊';
+  bgMusic.volume = muted ? 0 : 0.55;
+}
+
+// ══════════════════════════════════════════════════
+// 🎬 VIDEO MANAGER — preload + transition
+// ══════════════════════════════════════════════════
+var videos = [];
+for (var vi = 0; vi < 16; vi++) {
+  var v = document.getElementById('v' + vi);
+  if (v) {
+    var src = v.getAttribute('data-src');
+    v.setAttribute('src', src);
+    v.load();
+    videos.push(v);
+  }
+}
+
+var currentVideoIdx = -1;
+function showVideo(idx) {
+  // Wrap-around if more scenes than videos
+  idx = idx % videos.length;
+  if (idx === currentVideoIdx) return;
+
+  videos.forEach(function(v, i){
+    if (i === idx) {
+      v.classList.add('active');
+      v.currentTime = 0;
+      // Speed up slightly for energy (1.1x) or slow-mo for impact moments
+      v.playbackRate = 1.0;
+      var p = v.play();
+      if (p && p.catch) p.catch(function(){});
+    } else {
+      v.classList.remove('active');
+      v.pause();
+    }
+  });
+  currentVideoIdx = idx;
+}
+
+// ══════════════════════════════════════════════════
+// SCENE ORCHESTRATION
+// ══════════════════════════════════════════════════
+var DURATIONS = [
+  1000,  // 0: FORTSATT
+  1000,  // 1: ÄR INTE NOG
+  1300,  // 2: Statement
+  1200,  // 3: Data — Angle
+  1200,  // 4: Data — Sleep
+  1200,  // 5: Data — Injury
+  1200,  // 6: Data — Precision
+  1800,  // 7: All events
+  1800,  // 8: Features flash
+  1500,  // 9: Statement — Tekniken
+  1500,  // 10: Statement — Vetenskap
+  1500,  // 11: Statement — Hälsa
+  1700,  // 12: Sources
+  1400,  // 13: Quote
+  1600,  // 14: Logo
+  3000   // 15: Waitlist
+];
+
+var SCENES = ['s0','s1','s2','s3','s4','s5','s6','s7','s8','s9','s10','s11','s12','s13','s14','s15'];
+var totalDur = DURATIONS.reduce(function(a,b){return a+b;}, 0);
+var curScene = 0;
+var sceneStart = Date.now();
+var paused = false;
+var rafId = null;
+var started = false;
+
+function activate(idx) {
+  for (var i = 0; i < SCENES.length; i++) {
+    var el = document.getElementById(SCENES[i]);
+    if (el) el.classList.remove('active');
+  }
+  var target = document.getElementById(SCENES[idx]);
+  if (target) {
+    target.classList.add('active');
+    // Restart animations
+    var animEls = target.querySelectorAll('.word, .events-rush-chip, .src-storm-badge, .feature-tile');
+    animEls.forEach(function(el){
+      el.style.animation = 'none';
+      void el.offsetWidth;
+      el.style.animation = '';
+    });
+    // Switch background video
+    var videoIdx = parseInt(target.getAttribute('data-video') || '0', 10);
+    showVideo(videoIdx);
+  }
+}
+
+function tick() {
+  if (paused) { rafId = requestAnimationFrame(tick); return; }
+  var now = Date.now();
+  var elapsed = now - sceneStart;
+  var totalElapsed = 0;
+  for (var i = 0; i < curScene; i++) totalElapsed += DURATIONS[i];
+  totalElapsed += elapsed;
+  var pct = Math.min(100, (totalElapsed / totalDur) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('accentLine').style.width = pct + '%';
+
+  if (elapsed >= DURATIONS[curScene]) {
+    curScene++;
+    if (curScene >= SCENES.length) {
+      showReplay();
+      return;
+    }
+    sceneStart = Date.now();
+    activate(curScene);
+  }
+  rafId = requestAnimationFrame(tick);
+}
+
+function skipScene() {
+  if (curScene < SCENES.length - 1) {
+    curScene++;
+    sceneStart = Date.now();
+    activate(curScene);
+  } else {
+    showReplay();
+  }
+}
+
+function showReplay() {
+  paused = true;
+  if (rafId) cancelAnimationFrame(rafId);
+  if (!musicError && bgMusic) {
+    var fadeId = setInterval(function(){
+      bgMusic.volume = Math.max(0, bgMusic.volume - 0.05);
+      if (bgMusic.volume <= 0) {
+        clearInterval(fadeId);
+        bgMusic.pause();
+        bgMusic.currentTime = 0;
+        bgMusic.volume = muted ? 0 : 0.55;
+      }
+    }, 50);
+  }
+  videos.forEach(function(v){ v.pause(); });
+  document.getElementById('replay').classList.add('visible');
+  document.getElementById('progressFill').style.width = '100%';
+  document.getElementById('accentLine').style.width = '100%';
+}
+
+function restartTrailer() {
+  document.getElementById('replay').classList.remove('visible');
+  curScene = 0;
+  sceneStart = Date.now();
+  paused = false;
+  if (!musicError && bgMusic) {
+    bgMusic.currentTime = 0;
+    bgMusic.volume = muted ? 0 : 0.55;
+    bgMusic.play().catch(function(){});
+  }
+  activate(0);
+  if (rafId) cancelAnimationFrame(rafId);
+  tick();
+}
+
+var ctrlsTimer = null;
+function showCtrls() {
+  document.getElementById('ctrls').classList.add('visible');
+  if (ctrlsTimer) clearTimeout(ctrlsTimer);
+  ctrlsTimer = setTimeout(function(){
+    document.getElementById('ctrls').classList.remove('visible');
+  }, 2500);
+}
+document.addEventListener('mousemove', showCtrls);
+document.addEventListener('touchstart', showCtrls);
+document.addEventListener('keydown', showCtrls);
+
+function handleWaitlist(e) {
+  var btn = e.target.querySelector('button');
+  if (btn) {
+    btn.textContent = '...';
+    setTimeout(function(){
+      btn.textContent = '✓ Säkrad';
+      btn.style.background = '#10B981';
+    }, 800);
+  }
+  return true;
+}
+
+document.addEventListener('keydown', function(e){
+  if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); paused = !paused; if (!paused) sceneStart = Date.now(); }
+  if (e.key === 'ArrowRight' || e.key === 'n') skipScene();
+  if (e.key === 'r') restartTrailer();
+  if (e.key === 'm') toggleMute();
+  if (e.key === 'Escape') showReplay();
+});
+
+function enterWithSound() {
+  document.getElementById('gate').classList.add('gone');
+  bgMusic.play().catch(function(){ musicError = true; });
+  setTimeout(startTrailer, 400);
+}
+
+function enterMuted() {
+  muted = true;
+  bgMusic.volume = 0;
+  document.getElementById('muteBtn').textContent = '🔇';
+  document.getElementById('gate').classList.add('gone');
+  setTimeout(startTrailer, 400);
+}
+
+function startTrailer() {
+  if (started) return;
+  started = true;
+  sceneStart = Date.now();
+  activate(0);
+  setTimeout(function(){
+    tick();
+    showCtrls();
+  }, 200);
+}
+</script>
+
+</body>
+</html>

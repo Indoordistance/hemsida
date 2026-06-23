@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <!-- Top arc for INDOOR (concave down, reads left-to-right) -->
+    <path id="bl-top" d="M 18,52 A 32,32 0 0,1 82,52" fill="none"/>
+    <!-- Bottom arc for DISTANCE — go right-to-left at the bottom
+         so letters point INWARD toward center (standard circular-logo look) -->
+    <path id="bl-bot" d="M 82,48 A 32,32 0 0,1 18,48" fill="none"/>
+  </defs>
+  <!-- INDOOR -->
+  <text font-family="Georgia, 'Times New Roman', serif" font-size="9" font-weight="600" letter-spacing="2.8" fill="currentColor">
+    <textPath href="#bl-top" startOffset="50%" text-anchor="middle">INDOOR</textPath>
+  </text>
+  <!-- DISTANCE — drawn on a right-to-left bottom arc so letters point outward (down/away from center) -->
+  <text font-family="Georgia, 'Times New Roman', serif" font-size="9" font-weight="600" letter-spacing="2.0" fill="currentColor">
+    <textPath href="#bl-bot" startOffset="50%" text-anchor="middle">DISTANCE</textPath>
+  </text>
+  <!-- Center D (upright bold serif, matching sticker) -->
+  <text x="50" y="64" font-family="Georgia, 'Times New Roman', serif" font-weight="700" font-size="44" text-anchor="middle" fill="currentColor">D</text>
+</svg>

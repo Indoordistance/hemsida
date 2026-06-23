@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <linearGradient id="fabric" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="60%" stop-color="#F0F0F2"/>
+      <stop offset="100%" stop-color="#D4D4D8"/>
+    </linearGradient>
+    <linearGradient id="shadow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="rgba(0,0,0,0.06)"/>
+      <stop offset="100%" stop-color="rgba(0,0,0,0.18)"/>
+    </linearGradient>
+  </defs>
+  <!-- Hoodie body -->
+  <path d="M120 120 L80 140 L60 180 L70 250 L100 250 L100 360 L300 360 L300 250 L330 250 L340 180 L320 140 L280 120 L260 110 L200 100 L140 110 Z"
+        fill="url(#fabric)" stroke="#B8B8BC" stroke-width="1.5"/>
+  <!-- Hood -->
+  <path d="M140 110 Q200 50 260 110 L260 130 Q200 90 140 130 Z"
+        fill="url(#fabric)" stroke="#B8B8BC" stroke-width="1.5"/>
+  <!-- Hood opening shadow -->
+  <ellipse cx="200" cy="115" rx="50" ry="18" fill="url(#shadow)"/>
+  <!-- Drawstrings -->
+  <line x1="180" y1="130" x2="178" y2="180" stroke="#B8B8BC" stroke-width="2" stroke-linecap="round"/>
+  <line x1="220" y1="130" x2="222" y2="180" stroke="#B8B8BC" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="178" cy="183" r="3" fill="#9A9A9E"/>
+  <circle cx="222" cy="183" r="3" fill="#9A9A9E"/>
+  <!-- Kangaroo pocket -->
+  <path d="M130 250 L130 320 L270 320 L270 250" fill="none" stroke="#B8B8BC" stroke-width="1.5"/>
+  <line x1="170" y1="255" x2="170" y2="320" stroke="#C8C8CC" stroke-width="1"/>
+  <line x1="230" y1="255" x2="230" y2="320" stroke="#C8C8CC" stroke-width="1"/>
+  <!-- Logo -->
+  <g transform="translate(200,210)">
+    <rect x="-28" y="-22" width="56" height="44" rx="8" fill="rgba(220,208,188,0.15)" stroke="#DCD0BC" stroke-width="1.5"/>
+    <text x="0" y="6" font-family="Georgia, serif" font-style="italic" font-weight="700" font-size="20" text-anchor="middle" fill="#A89572">ID</text>
+  </g>
+  <!-- Sleeves shadow -->
+  <path d="M80 140 L60 180 L70 250 L100 250 L100 220 L75 200 L80 160 Z" fill="rgba(0,0,0,0.05)"/>
+  <path d="M320 140 L340 180 L330 250 L300 250 L300 220 L325 200 L320 160 Z" fill="rgba(0,0,0,0.05)"/>
+  <!-- Ribbed cuffs hint -->
+  <line x1="65" y1="248" x2="100" y2="248" stroke="#B8B8BC" stroke-width="1"/>
+  <line x1="300" y1="248" x2="335" y2="248" stroke="#B8B8BC" stroke-width="1"/>
+  <!-- Bottom ribbed hem -->
+  <line x1="100" y1="355" x2="300" y2="355" stroke="#B8B8BC" stroke-width="1"/>
+</svg>

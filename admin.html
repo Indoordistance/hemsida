@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin — Indoor Distance</title>
+<link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23000000'/><rect x='4' y='4' width='92' height='92' rx='20' fill='none' stroke='%23DCD0BC' stroke-width='2.5'/><text x='50' y='74' font-size='72' text-anchor='middle' fill='%23DCD0BC' font-family='Georgia' font-weight='bold'>D</text></svg>">
+<link rel="stylesheet" href="style.css?v=20260604b">
+<style>
+  body { background: var(--bg); min-height: 100vh; padding: 0; }
+  .admin-shell {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 32px 80px;
+  }
+  .admin-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 40px;
+    flex-wrap: wrap; gap: 16px;
+  }
+  .admin-title {
+    display: flex; align-items: center; gap: 16px;
+  }
+  .admin-title-mark {
+    width: 48px; height: 48px;
+    background: #000;
+    border: 1.5px solid var(--accent);
+    border-radius: 12px;
+    color: var(--accent);
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: 30px;
+    line-height: 1;
+    padding-bottom: 3px;
+    box-shadow: 0 0 0 2px rgba(220,208,188,0.10);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .admin-title h1 {
+    font-size: 28px; font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .admin-title .sub {
+    font-size: 12px;
+    color: var(--text-mute);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-top: 6px;
+  }
+  .admin-actions { display: flex; gap: 10px; }
+  .admin-link {
+    background: var(--surface);
+    border: 1px solid var(--border-2);
+    color: var(--text);
+    padding: 9px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: all .2s ease;
+  }
+  .admin-link:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .admin-link.danger { color: #f87171; border-color: rgba(248,113,113,0.40); }
+  .admin-link.danger:hover { background: rgba(248,113,113,0.10); }
+
+  /* PIN gate */
+  .pin-gate {
+    min-height: 80vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 40px;
+  }
+  .pin-card {
+    background: var(--surface);
+    border: 1px solid var(--border-2);
+    border-radius: 18px;
+    padding: 40px 36px;
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+  }
+  .pin-card .pin-mark {
+    width: 64px; height: 64px;
+    margin: 0 auto 18px;
+    background: #000;
+    border: 2px solid var(--accent);
+    border-radius: 16px;
+    color: var(--accent);
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: 40px;
+    line-height: 1;
+    padding-bottom: 4px;
+    box-shadow: 0 0 0 3px rgba(220,208,188,0.12);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .pin-card h2 {
+    font-size: 22px; font-weight: 700;
+    margin-bottom: 6px;
+    letter-spacing: -0.01em;
+  }
+  .pin-card p {
+    font-size: 13px;
+    color: var(--text-mute);
+    margin-bottom: 22px;
+  }
+  .pin-input {
+    width: 100%;
+    background: var(--surface-2);
+    border: 1px solid var(--border-2);
+    border-radius: 12px;
+    color: var(--text);
+    padding: 14px 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 22px;
+    text-align: center;
+    letter-spacing: 0.5em;
+    margin-bottom: 14px;
+  }
+  .pin-input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .pin-btn {
+    width: 100%;
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    padding: 13px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all .2s ease;
+  }
+  .pin-btn:hover {
+    background: var(--accent-2);
+  }
+  .pin-hint {
+    font-size: 11px;
+    color: var(--text-mute);
+    margin-top: 16px;
+  }
+
+  /* Admin sections */
+  .admin-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+  }
+  .admin-section-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px;
+    flex-wrap: wrap; gap: 12px;
+  }
+  .admin-section-head h2 {
+    font-size: 20px; font-weight: 700;
+    letter-spacing: -0.015em;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .admin-section-head .icon {
+    width: 32px; height: 32px;
+    background: var(--surface-2);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--accent);
+  }
+  .admin-section-head .sub {
+    font-size: 13px;
+    color: var(--text-mute);
+    margin-top: 4px;
+    font-weight: 400;
+  }
+
+  /* Shop toggle */
+  .shop-toggle-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 22px;
+    background: var(--surface-2);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap; gap: 16px;
+  }
+  .shop-toggle-row .info { flex: 1; min-width: 220px; }
+  .shop-toggle-row .info strong {
+    display: block;
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+  .shop-toggle-row .info span {
+    font-size: 12px;
+    color: var(--text-mute);
+  }
+  .toggle-switch {
+    position: relative;
+    width: 56px; height: 30px;
+    background: rgba(255,255,255,0.10);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background .25s ease;
+    flex-shrink: 0;
+  }
+  .toggle-switch::after {
+    content: '';
+    position: absolute; top: 3px; left: 3px;
+    width: 24px; height: 24px;
+    background: #FFF;
+    border-radius: 50%;
+    transition: transform .25s ease;
+  }
+  .toggle-switch.on { background: #22c55e; }
+  .toggle-switch.on::after { transform: translateX(26px); }
+  .toggle-status {
+    font-size: 12px; font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 999px;
+  }
+  .toggle-status.open {
+    background: rgba(34,197,94,0.15);
+    color: #4ade80;
+  }
+  .toggle-status.closed {
+    background: rgba(248,113,113,0.15);
+    color: #fca5a5;
+  }
+  .shop-config-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  @media (max-width: 600px) {
+    .shop-config-grid { grid-template-columns: 1fr; }
+  }
+  .admin-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-mute);
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .admin-input {
+    width: 100%;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    padding: 11px 14px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: border-color .2s ease;
+  }
+  .admin-input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  /* Stock table */
+  .stock-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .stock-table th,
+  .stock-table td {
+    padding: 14px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .stock-table th {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-mute);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .stock-table tr:last-child td { border-bottom: none; }
+  .stock-product {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .stock-product-img {
+    width: 50px; height: 50px;
+    background: var(--surface-2);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    padding: 4px;
+    flex-shrink: 0;
+  }
+  .stock-product-img img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+  .stock-product-info strong {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 2px;
+  }
+  .stock-product-info span {
+    font-size: 11px;
+    color: var(--text-mute);
+  }
+  .stock-input {
+    width: 80px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 8px 10px;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .stock-input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .stock-state {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .stock-state.in {
+    background: rgba(34,197,94,0.15);
+    color: #4ade80;
+  }
+  .stock-state.low {
+    background: rgba(251,191,36,0.15);
+    color: #fbbf24;
+  }
+  .stock-state.out {
+    background: rgba(248,113,113,0.15);
+    color: #fca5a5;
+  }
+  .stock-actions {
+    display: flex; gap: 6px;
+  }
+  .stock-action-btn {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all .15s ease;
+  }
+  .stock-action-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* Save bar */
+  .save-bar {
+    position: sticky;
+    bottom: 16px;
+    background: rgba(14,22,38,0.95);
+    backdrop-filter: blur(18px);
+    border: 1px solid var(--border-2);
+    border-radius: 14px;
+    padding: 14px 22px;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.40);
+    margin-top: 20px;
+    flex-wrap: wrap; gap: 12px;
+  }
+  .save-bar.dirty { border-color: var(--accent); }
+  .save-bar .changes {
+    font-size: 13px;
+    color: var(--text-mute);
+  }
+  .save-bar.dirty .changes { color: var(--accent); }
+  .save-bar button {
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    padding: 10px 22px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all .2s ease;
+  }
+  .save-bar button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .save-bar button:not(:disabled):hover {
+    background: var(--accent-2);
+  }
+
+  /* Orders */
+  .order-card {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-bottom: 10px;
+  }
+  .order-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px;
+    flex-wrap: wrap; gap: 8px;
+  }
+  .order-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .order-date {
+    font-size: 11px;
+    color: var(--text-mute);
+  }
+  .order-info {
+    font-size: 13px;
+    color: var(--text);
+  }
+  .order-total {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 18px;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .order-items {
+    font-size: 12px;
+    color: var(--text-mute);
+    margin-top: 6px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+  .order-status {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+    letter-spacing: 0.04em;
+    margin-left: 8px;
+  }
+  .order-status-row {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+  .order-status-select {
+    padding: 9px 12px;
+    font-size: 13px;
+    width: 100%;
+    max-width: 320px;
+    background: var(--surface-2);
+    color: var(--text);
+    border: 1px solid var(--border-2);
+    border-radius: 8px;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .order-status-select:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-mute);
+    font-size: 13px;
+  }
+
+  /* Quick stats */
+  .quick-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .quick-stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+  }
+  .quick-stat-lbl {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-mute);
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .quick-stat-val {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 30px;
+    color: var(--accent);
+    font-weight: 600;
+    line-height: 1;
+  }
+  .quick-stat-sub {
+    font-size: 11px;
+    color: var(--text-mute);
+    margin-top: 6px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ─── PIN GATE ─── -->
+<div id="pinGate" class="pin-gate">
+  <div class="pin-card">
+    <div class="pin-mark">D</div>
+    <h2>Admin-inloggning</h2>
+    <p>Skriv din 4-siffriga PIN för att fortsätta.</p>
+    <input type="password" class="pin-input" id="pinInput" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="••••" autofocus>
+    <button class="pin-btn" onclick="checkPin()">Logga in</button>
+    <div class="pin-hint" id="pinHint">Förvald PIN: <strong>6861</strong> (ändra i Inställningar)</div>
+  </div>
+</div>
+
+<!-- ─── ADMIN SHELL ─── -->
+<div id="adminShell" class="admin-shell" style="display:none">
+
+  <div class="admin-header">
+    <div class="admin-title">
+      <div class="admin-title-mark">D</div>
+      <div>
+        <h1>Admin</h1>
+        <div class="sub">Indoor Distance · Butikshantering</div>
+      </div>
+    </div>
+    <div class="admin-actions">
+      <a href="index.html" class="admin-link">← Tillbaka till hemsidan</a>
+      <button class="admin-link danger" onclick="logoutAdmin()">Logga ut</button>
+    </div>
+  </div>
+
+  <!-- Quick stats -->
+  <div class="quick-stats">
+    <div class="quick-stat">
+      <div class="quick-stat-lbl">Butiksstatus</div>
+      <div class="quick-stat-val" id="qsShop">–</div>
+      <div class="quick-stat-sub" id="qsShopSub">–</div>
+    </div>
+    <div class="quick-stat">
+      <div class="quick-stat-lbl">Produkter i lager</div>
+      <div class="quick-stat-val" id="qsStock">–</div>
+      <div class="quick-stat-sub">av <span id="qsTotal">–</span> produkter</div>
+    </div>
+    <div class="quick-stat">
+      <div class="quick-stat-lbl">Beställningar</div>
+      <div class="quick-stat-val" id="qsOrders">–</div>
+      <div class="quick-stat-sub">totalt</div>
+    </div>
+    <div class="quick-stat">
+      <div class="quick-stat-lbl">Omsättning</div>
+      <div class="quick-stat-val" id="qsRev">–</div>
+      <div class="quick-stat-sub">kr (alla orders)</div>
+    </div>
+  </div>
+
+  <!-- Section: Shop on/off -->
+  <div class="admin-section">
+    <div class="admin-section-head">
+      <h2>
+        <span class="icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+        </span>
+        Butiksstatus
+      </h2>
+    </div>
+
+    <div class="shop-toggle-row">
+      <div class="info">
+        <strong>Butik öppen för köp</strong>
+        <span id="shopStateText">När du stänger butiken visas "Kommer snart" istället för köpknappar — men produkterna syns fortfarande.</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px">
+        <span class="toggle-status closed" id="shopStateBadge">STÄNGD</span>
+        <div class="toggle-switch" id="shopToggle" onclick="toggleShop()"></div>
+      </div>
+    </div>
+
+    <div class="shop-config-grid">
+      <div>
+        <label class="admin-label">Meddelande till kunder</label>
+        <input type="text" class="admin-input" id="shopMessage" placeholder="Vi har inte börjat sälja än — håll utkik!" oninput="markDirty()">
+      </div>
+      <div>
+        <label class="admin-label">Förväntat startdatum</label>
+        <input type="text" class="admin-input" id="shopDate" placeholder="t.ex. Hösten 2026 eller 15 augusti" oninput="markDirty()">
+      </div>
+    </div>
+  </div>
+
+  <!-- Section: Stock -->
+  <div class="admin-section">
+    <div class="admin-section-head">
+      <h2>
+        <span class="icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 3h5v5M21 3l-7 7M8 21H3v-5M3 21l7-7M21 16v5h-5M21 21l-7-7M3 8V3h5M3 3l7 7"/></svg>
+        </span>
+        Lagersaldo
+      </h2>
+      <div style="display:flex;gap:8px">
+        <button class="stock-action-btn" onclick="setAllStock(0)">Nollställ alla</button>
+        <button class="stock-action-btn" onclick="setAllStock(20)">Sätt alla till 20</button>
+      </div>
+    </div>
+
+    <div style="overflow-x:auto">
+      <table class="stock-table">
+        <thead>
+          <tr>
+            <th>Produkt</th>
+            <th>Pris</th>
+            <th>Antal kvar</th>
+            <th>Status</th>
+            <th>Snabb</th>
+          </tr>
+        </thead>
+        <tbody id="stockBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Section: Add New Product -->
+  <div class="admin-section">
+    <div class="admin-section-head">
+      <h2>
+        <span class="icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </span>
+        Lägg till produkt
+        <div style="font-size:13px;color:var(--text-mute);margin-top:4px;font-weight:400">Skapa en ny produkt som visas i butiken</div>
+      </h2>
+    </div>
+
+    <div class="shop-config-grid">
+      <div>
+        <label class="admin-label">Produktnamn</label>
+        <input type="text" class="admin-input" id="npName" placeholder="t.ex. Indoor Distance Mössa">
+      </div>
+      <div>
+        <label class="admin-label">Pris (kr)</label>
+        <input type="number" class="admin-input" id="npPrice" placeholder="t.ex. 199" min="1">
+      </div>
+      <div>
+        <label class="admin-label">Tag (kategorimärke)</label>
+        <input type="text" class="admin-input" id="npTag" placeholder="t.ex. Mössa, Hatt, Tröja">
+      </div>
+      <div>
+        <label class="admin-label">Kategori (filterval)</label>
+        <select class="admin-input" id="npCategory">
+          <option value="hoodie">Huvtröja</option>
+          <option value="man">Herr</option>
+          <option value="kvinna">Dam</option>
+          <option value="ungdom">Ungdom</option>
+          <option value="smabarn">Småbarn</option>
+          <option value="mugg">Mugg</option>
+          <option value="klister">Klistermärke</option>
+          <option value="other">Övrigt</option>
+        </select>
+      </div>
+    </div>
+
+    <label class="admin-label" style="margin-top:14px">Beskrivning</label>
+    <textarea class="admin-input" id="npDesc" rows="3" placeholder="Kort beskrivning av produkten..." style="font-family:inherit;line-height:1.5;resize:vertical"></textarea>
+
+    <div class="shop-config-grid" style="margin-top:14px">
+      <div>
+        <label class="admin-label">Storlekar (kommaseparerade — lämna tomt om ingen)</label>
+        <input type="text" class="admin-input" id="npSizes" placeholder="t.ex. S, M, L, XL eller 38, 40, 42">
+      </div>
+      <div>
+        <label class="admin-label">Färg</label>
+        <input type="text" class="admin-input" id="npColor" placeholder="t.ex. Vit, Svart, Grå">
+      </div>
+    </div>
+
+    <label class="admin-label" style="margin-top:14px">Bilder (URLer eller bilder/filnamn.png — en per rad)</label>
+    <textarea class="admin-input" id="npImages" rows="3" placeholder="bilder/min-nya-produkt.png&#10;eller&#10;https://exempel.se/bild.jpg" style="font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.5;resize:vertical"></textarea>
+
+    <label class="admin-label" style="margin-top:14px">Startlager (antal i lager direkt)</label>
+    <input type="number" class="admin-input" id="npStock" placeholder="t.ex. 20" min="0" value="0" style="max-width:200px">
+
+    <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap">
+      <button class="stock-action-btn" onclick="resetProductForm()">↺ Återställ formulär</button>
+      <button class="stock-action-btn" style="background:var(--accent);color:var(--bg);font-weight:700;border-color:var(--accent)" onclick="addNewProduct()">+ Lägg till produkten</button>
+    </div>
+
+    <details style="margin-top:18px">
+      <summary style="cursor:pointer;font-size:13px;color:var(--text-mute);font-weight:600;padding:8px 0">📦 Hantera tillagda produkter</summary>
+      <div id="customProductsList" style="margin-top:10px"></div>
+    </details>
+  </div>
+
+  <!-- Section: Orders -->
+  <div class="admin-section">
+    <div class="admin-section-head">
+      <h2>
+        <span class="icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        </span>
+        Beställningar
+      </h2>
+      <button class="stock-action-btn" onclick="exportOrders()">Exportera CSV</button>
+    </div>
+    <div id="ordersBody"></div>
+  </div>
+
+  <!-- Section: Newsletter -->
+  <div class="admin-section">
+    <div class="admin-section-head">
+      <h2>
+        <span class="icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        </span>
+        Nyhetsbrev
+        <div style="font-size:13px;color:var(--text-mute);margin-top:4px;font-weight:400">Skicka uppdateringar till dina prenumeranter</div>
+      </h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="stock-action-btn" onclick="exportSubscribers()">📥 Exportera CSV</button>
+        <button class="stock-action-btn" onclick="copySubscriberEmails()">📋 Kopiera alla e-postadresser</button>
+      </div>
+    </div>
+
+    <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:18px">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div>
+          <strong style="font-size:14px">Prenumeranter</strong>
+          <div style="font-size:12px;color:var(--text-mute);margin-top:3px">Alla som anmält sig på hemsidan</div>
+        </div>
+        <div style="font-family:var(--serif);font-style:italic;font-size:28px;color:var(--accent);font-weight:600" id="subCount">0</div>
+      </div>
+      <div id="subscriberList" style="margin-top:14px;font-size:12px;color:var(--text-mute);max-height:180px;overflow-y:auto"></div>
+    </div>
+
+    <label class="admin-label">Ämne</label>
+    <input type="text" class="admin-input" id="nlSubject" placeholder="t.ex. Nya hoodies har släppts! ✨" style="margin-bottom:14px">
+
+    <label class="admin-label">Meddelande</label>
+    <textarea class="admin-input" id="nlBody" rows="8" placeholder="Skriv ditt nyhetsbrev här... Tips: håll det kort, personligt och med en tydlig länk till mer info." style="resize:vertical;font-family:inherit;line-height:1.5"></textarea>
+
+    <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+      <button class="stock-action-btn" onclick="previewNewsletter()">👁️ Förhandsgranska</button>
+      <button class="stock-action-btn" style="background:var(--accent);color:var(--bg);font-weight:700;border-color:var(--accent)" onclick="sendNewsletter()">📨 Skicka via mailprogram (BCC)</button>
+    </div>
+
+    <details style="margin-top:18px">
+      <summary style="cursor:pointer;font-size:13px;color:var(--text-mute);font-weight:600;padding:8px 0">💡 Vill du använda Mailchimp eller Brevo istället?</summary>
+      <div style="background:var(--surface-2);border-radius:8px;padding:14px 16px;margin-top:8px;font-size:13px;line-height:1.7;color:var(--text)">
+        <strong>För större utskick (50+ prenumeranter):</strong>
+        <ol style="margin:10px 0 0 20px;padding:0">
+          <li>Klicka <strong>"📥 Exportera CSV"</strong> ovan</li>
+          <li>Skapa gratis konto på <a href="https://mailchimp.com" target="_blank" style="color:var(--accent)">Mailchimp</a> (10 000 mail/månad gratis) eller <a href="https://brevo.com" target="_blank" style="color:var(--accent)">Brevo</a> (300 mail/dag gratis)</li>
+          <li>Importera CSV-filen som ny prenumerantlista</li>
+          <li>Designa snyggt nyhetsbrev med deras editor och schemalägg utskick</li>
+        </ol>
+        <p style="margin-top:12px;color:var(--text-mute);font-size:12px">📌 Tips: Brevo har enklare prissättning för svenska företag och bra GDPR-stöd.</p>
+      </div>
+    </details>
+  </div>
+
+  <!-- Section: Settings -->
+  <div class="admin-section">
+    <div class="admin-section-head">
+      <h2>
+        <span class="icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </span>
+        Inställningar
+      </h2>
+    </div>
+    <div class="shop-config-grid">
+      <div>
+        <label class="admin-label">Byt PIN-kod (4 siffror)</label>
+        <input type="password" class="admin-input" id="newPin" maxlength="4" placeholder="t.ex. 9876">
+      </div>
+      <div style="display:flex;align-items:flex-end">
+        <button class="stock-action-btn" onclick="savePin()" style="height:45px;padding:0 20px">Spara ny PIN</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Save bar -->
+  <div class="save-bar" id="saveBar">
+    <div class="changes" id="changeIndicator">Inga ändringar</div>
+    <button id="saveBtn" onclick="saveAll()" disabled>Spara ändringar</button>
+  </div>
+
+</div>
+
+<script src="script.js?v=20260604b"></script>
+<script>
+// ═══════════════════════════════════════════════════════════
+//  ADMIN PAGE LOGIC
+// ═══════════════════════════════════════════════════════════
+let dirty = false;
+let workingShopState = null;
+let workingStock = null;
+const SESSION_KEY = 'id_admin_session';
+
+function init() {
+  // Check if already authed this session
+  if (sessionStorage.getItem(SESSION_KEY) === '1') {
+    enterAdmin();
+  } else {
+    document.getElementById('pinInput').focus();
+    document.getElementById('pinInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') checkPin();
+    });
+  }
+}
+
+function getCurrentPin() {
+  return localStorage.getItem(ADMIN_PIN_KEY) || '6861';
+}
+
+function checkPin() {
+  const entered = document.getElementById('pinInput').value;
+  if (entered === getCurrentPin()) {
+    sessionStorage.setItem(SESSION_KEY, '1');
+    enterAdmin();
+  } else {
+    const hint = document.getElementById('pinHint');
+    hint.style.color = '#fca5a5';
+    hint.textContent = 'Fel PIN. Försök igen.';
+    document.getElementById('pinInput').value = '';
+    document.getElementById('pinInput').focus();
+  }
+}
+
+function logoutAdmin() {
+  sessionStorage.removeItem(SESSION_KEY);
+  location.reload();
+}
+
+function enterAdmin() {
+  document.getElementById('pinGate').style.display = 'none';
+  document.getElementById('adminShell').style.display = 'block';
+  workingShopState = JSON.parse(JSON.stringify(getShopState()));
+  workingStock = JSON.parse(JSON.stringify(getStockMap()));
+  renderShopState();
+  renderStock();
+  renderOrders();
+  renderQuickStats();
+  renderSubscribers();
+  renderCustomProducts();
+}
+
+function renderShopState() {
+  const isOpen = !!workingShopState.open;
+  const toggle = document.getElementById('shopToggle');
+  const badge = document.getElementById('shopStateBadge');
+  toggle.classList.toggle('on', isOpen);
+  badge.classList.toggle('open', isOpen);
+  badge.classList.toggle('closed', !isOpen);
+  badge.textContent = isOpen ? 'ÖPPEN' : 'STÄNGD';
+  document.getElementById('shopMessage').value = workingShopState.message || '';
+  document.getElementById('shopDate').value = workingShopState.expectedDate || '';
+}
+
+function toggleShop() {
+  workingShopState.open = !workingShopState.open;
+  renderShopState();
+  markDirty();
+}
+
+function renderStock() {
+  const body = document.getElementById('stockBody');
+  body.innerHTML = PRODUCTS.map(p => {
+    const stock = Number.isInteger(workingStock[p.id]) ? workingStock[p.id] : 0;
+    const state = stock === 0 ? 'out' : stock <= 3 ? 'low' : 'in';
+    const stateLbl = stock === 0 ? 'Slutsåld' : stock <= 3 ? 'Få kvar' : 'I lager';
+    return `
+      <tr>
+        <td>
+          <div class="stock-product">
+            <div class="stock-product-img"><img src="${p.images[0]}" alt="${p.name}"></div>
+            <div class="stock-product-info">
+              <strong>${p.name}</strong>
+              <span>${p.tag} · ${p.sizes ? p.sizes.join(', ') : '–'}</span>
+            </div>
+          </div>
+        </td>
+        <td>${p.price} kr</td>
+        <td>
+          <input type="number" class="stock-input" data-pid="${p.id}" value="${stock}" min="0" max="9999" oninput="onStockChange('${p.id}', this.value)">
+        </td>
+        <td><span class="stock-state ${state}">${stateLbl}</span></td>
+        <td>
+          <div class="stock-actions">
+            <button class="stock-action-btn" onclick="adjustStock('${p.id}', -1)">−1</button>
+            <button class="stock-action-btn" onclick="adjustStock('${p.id}', 1)">+1</button>
+            <button class="stock-action-btn" onclick="adjustStock('${p.id}', 10)">+10</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function onStockChange(pid, value) {
+  workingStock[pid] = Math.max(0, parseInt(value) || 0);
+  // Update state badge live
+  renderStock();
+  markDirty();
+}
+
+function adjustStock(pid, delta) {
+  const cur = Number.isInteger(workingStock[pid]) ? workingStock[pid] : 0;
+  workingStock[pid] = Math.max(0, cur + delta);
+  renderStock();
+  markDirty();
+}
+
+function setAllStock(qty) {
+  if (!confirm(`Sätt alla produkter till ${qty}?`)) return;
+  PRODUCTS.forEach(p => { workingStock[p.id] = qty; });
+  renderStock();
+  markDirty();
+}
+
+function markDirty() {
+  // Detect actual changes
+  const stockChanged = JSON.stringify(workingStock) !== JSON.stringify(getStockMap());
+  const stateChanged =
+    workingShopState.open !== getShopState().open ||
+    document.getElementById('shopMessage').value !== (getShopState().message || '') ||
+    document.getElementById('shopDate').value !== (getShopState().expectedDate || '');
+  dirty = stockChanged || stateChanged;
+  const bar = document.getElementById('saveBar');
+  const indicator = document.getElementById('changeIndicator');
+  const btn = document.getElementById('saveBtn');
+  bar.classList.toggle('dirty', dirty);
+  btn.disabled = !dirty;
+  indicator.textContent = dirty ? 'Osparade ändringar' : 'Inga ändringar';
+}
+
+function saveAll() {
+  // Persist
+  workingShopState.message = document.getElementById('shopMessage').value.trim() || DEFAULT_SHOP_STATE.message;
+  workingShopState.expectedDate = document.getElementById('shopDate').value.trim();
+  setShopState(workingShopState);
+  setStockMap(workingStock);
+  dirty = false;
+  markDirty();
+  // Refresh
+  renderQuickStats();
+  // Show feedback
+  const btn = document.getElementById('saveBtn');
+  const orig = btn.textContent;
+  btn.textContent = '✓ Sparat';
+  btn.style.background = '#22c55e';
+  setTimeout(() => {
+    btn.textContent = orig;
+    btn.style.background = '';
+  }, 1500);
+}
+
+// All 8 order statuses
+const ORDER_STATUSES = [
+  { id: 'pending_payment', label: 'Väntar på swish', emoji: '⏳', color: '#fbbf24' },
+  { id: 'paid',            label: 'Betalad',         emoji: '💰', color: '#4ade80' },
+  { id: 'packed',          label: 'Packad och redo', emoji: '📦', color: '#60a5fa' },
+  { id: 'awaiting_stock',  label: 'Väntar i lagret', emoji: '🏬', color: '#a78bfa' },
+  { id: 'out_of_stock',    label: 'Slut på produkten', emoji: '❌', color: '#f97316' },
+  { id: 'shipped',         label: 'På väg',          emoji: '🚚', color: '#06b6d4' },
+  { id: 'delivered',       label: 'Framme',          emoji: '✅', color: '#22c55e' },
+  { id: 'cancelled',       label: 'Avbruten',        emoji: '🚫', color: '#ef4444' }
+];
+
+function getOrderStatusMeta(id) {
+  return ORDER_STATUSES.find(s => s.id === id) || ORDER_STATUSES[0];
+}
+
+function renderOrders() {
+  const body = document.getElementById('ordersBody');
+  const orders = JSON.parse(localStorage.getItem('id_orders') || '[]');
+  if (orders.length === 0) {
+    body.innerHTML = '<div class="empty-state">Inga beställningar än.</div>';
+    return;
+  }
+  body.innerHTML = orders.map((o, i) => {
+    const date = new Date(o.ts);
+    const dateStr = date.toLocaleDateString('sv-SE', { day:'numeric', month:'short', year:'numeric' }) + ' ' + date.toLocaleTimeString('sv-SE', { hour:'2-digit', minute:'2-digit' });
+    const items = o.items.map(it => `${it.qty}× ${it.name}${it.size?' ('+it.size+')':''}`).join(', ');
+    const status = getOrderStatusMeta(o.status || 'pending_payment');
+    return `
+      <div class="order-card">
+        <div class="order-row">
+          <div>
+            <span class="order-num">#${o.orderNum}</span>
+            <span class="order-status" style="background:${status.color}22;color:${status.color}">${status.emoji} ${status.label}</span>
+          </div>
+          <div class="order-date">${dateStr}</div>
+        </div>
+        <div class="order-row">
+          <div class="order-info">
+            <strong>${o.customer.name}</strong> · <a href="mailto:${o.customer.email}" style="color:var(--text);text-decoration:underline">${o.customer.email}</a><br>
+            <span style="color:var(--text-mute);font-size:12px">📞 ${o.customer.phone || '–'} · 📍 ${o.customer.address}</span>
+          </div>
+          <div class="order-total">${o.total} kr</div>
+        </div>
+        <div class="order-items">${items}</div>
+        <div class="order-status-row">
+          <label class="admin-label" style="margin-bottom:6px">Ändra status</label>
+          <select class="admin-input order-status-select" onchange="changeOrderStatus(${i}, this.value)">
+            ${ORDER_STATUSES.map(s => `<option value="${s.id}" ${(o.status||'pending_payment')===s.id?'selected':''}>${s.emoji} ${s.label}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  CUSTOM PRODUCTS (added via admin)
+// ═══════════════════════════════════════════════════════════
+const CUSTOM_PRODUCTS_KEY = 'id_custom_products';
+
+function getCustomProducts() {
+  try { return JSON.parse(localStorage.getItem(CUSTOM_PRODUCTS_KEY) || '[]'); }
+  catch (e) { return []; }
+}
+function setCustomProducts(arr) {
+  localStorage.setItem(CUSTOM_PRODUCTS_KEY, JSON.stringify(arr));
+}
+
+function resetProductForm() {
+  ['npName','npPrice','npTag','npDesc','npSizes','npColor','npImages'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('npStock').value = '0';
+  document.getElementById('npCategory').value = 'hoodie';
+}
+
+function addNewProduct() {
+  const name = document.getElementById('npName').value.trim();
+  const price = parseInt(document.getElementById('npPrice').value);
+  const tag = document.getElementById('npTag').value.trim();
+  const category = document.getElementById('npCategory').value;
+  const desc = document.getElementById('npDesc').value.trim();
+  const sizes = document.getElementById('npSizes').value.trim();
+  const color = document.getElementById('npColor').value.trim();
+  const imagesRaw = document.getElementById('npImages').value.trim();
+  const stock = parseInt(document.getElementById('npStock').value) || 0;
+
+  if (!name) { alert('Produktnamn krävs.'); return; }
+  if (!price || price <= 0) { alert('Ange ett giltigt pris.'); return; }
+  if (!desc) { alert('Beskrivning krävs.'); return; }
+  if (!imagesRaw) { alert('Minst en bild krävs.'); return; }
+
+  const id = 'custom-' + Date.now().toString(36);
+  const product = {
+    id,
+    name,
+    tag: tag || 'Produkt',
+    price,
+    category,
+    images: imagesRaw.split('\n').map(l => l.trim()).filter(Boolean),
+    desc,
+    color: color || 'Standard',
+    sizes: sizes ? sizes.split(',').map(s => s.trim()).filter(Boolean) : null,
+    sizeCategory: category.includes('hoodie') ? 'vuxen-hoodie' : category === 'kvinna' ? 'kvinna' : 'man',
+    keywords: [name.toLowerCase(), tag.toLowerCase(), category, color.toLowerCase()].filter(Boolean),
+    custom: true,
+    createdAt: Date.now()
+  };
+
+  const customProducts = getCustomProducts();
+  customProducts.push(product);
+  setCustomProducts(customProducts);
+
+  // Set initial stock
+  const stockMap = JSON.parse(localStorage.getItem('id_stock') || '{}');
+  stockMap[id] = stock;
+  localStorage.setItem('id_stock', JSON.stringify(stockMap));
+
+  alert(`✓ Produkten "${name}" har lagts till!\n\nDen syns nu i butiken så fort en kund laddar om sidan.`);
+  resetProductForm();
+  renderCustomProducts();
+  renderQuickStats();
+}
+
+function renderCustomProducts() {
+  const list = document.getElementById('customProductsList');
+  if (!list) return;
+  const customs = getCustomProducts();
+  if (customs.length === 0) {
+    list.innerHTML = '<div style="color:var(--text-mute);font-size:13px;padding:14px 0">Inga egna produkter än. Lägg till en ovan så dyker den upp här.</div>';
+    return;
+  }
+  list.innerHTML = customs.map((p, i) => `
+    <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;margin-bottom:8px">
+      <div style="width:42px;height:42px;background:var(--surface);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:18px">📦</div>
+      <div style="flex:1;min-width:0">
+        <strong style="font-size:13px">${p.name}</strong><br>
+        <span style="font-size:11px;color:var(--text-mute)">${p.tag} · ${p.price} kr · ${p.images.length} bild${p.images.length===1?'':'er'}</span>
+      </div>
+      <button class="stock-action-btn" style="color:#f87171;border-color:rgba(248,113,113,0.40)" onclick="deleteCustomProduct(${i})">Ta bort</button>
+    </div>
+  `).join('');
+}
+
+function deleteCustomProduct(idx) {
+  const customs = getCustomProducts();
+  const p = customs[idx];
+  if (!p) return;
+  if (!confirm(`Ta bort "${p.name}" från butiken?`)) return;
+  customs.splice(idx, 1);
+  setCustomProducts(customs);
+  // Also remove stock
+  const stockMap = JSON.parse(localStorage.getItem('id_stock') || '{}');
+  delete stockMap[p.id];
+  localStorage.setItem('id_stock', JSON.stringify(stockMap));
+  renderCustomProducts();
+  renderQuickStats();
+}
+
+async function changeOrderStatus(idx, newStatus) {
+  const orders = JSON.parse(localStorage.getItem('id_orders') || '[]');
+  const order = orders[idx];
+  if (!order) return;
+  const oldStatus = order.status || 'pending_payment';
+  if (oldStatus === newStatus) return;
+
+  let reason = '';
+  if (newStatus === 'cancelled') {
+    reason = prompt(`Varför avbryts ordern #${order.orderNum}? (Detta meddelas kunden)`,
+      'T.ex. produkten slut i lagret');
+    if (reason === null) {
+      // User cancelled the prompt, revert select
+      renderOrders();
+      return;
+    }
+  } else {
+    // Optional: ask if user wants to send status update email
+    if (!confirm(`Byt status till "${getOrderStatusMeta(newStatus).label}" och meddela kunden via mail?`)) {
+      // Just change status without email
+      order.status = newStatus;
+      order.statusHistory = order.statusHistory || [];
+      order.statusHistory.push({ ts: Date.now(), from: oldStatus, to: newStatus });
+      localStorage.setItem('id_orders', JSON.stringify(orders));
+      renderOrders();
+      renderQuickStats();
+      return;
+    }
+  }
+
+  // Update status
+  order.status = newStatus;
+  order.statusHistory = order.statusHistory || [];
+  order.statusHistory.push({ ts: Date.now(), from: oldStatus, to: newStatus, reason });
+  if (reason) order.cancellationReason = reason;
+  localStorage.setItem('id_orders', JSON.stringify(orders));
+
+  // Send notification email via Formspree (order endpoint)
+  const statusMeta = getOrderStatusMeta(newStatus);
+  const customerMessage = buildStatusEmail(order, statusMeta, reason);
+  try {
+    await fetch('https://formspree.io/f/mjgpdoyk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        _subject: `Order ${order.orderNum} — ${statusMeta.label}`,
+        _replyto: order.customer.email,
+        notifyCustomer: order.customer.email,
+        orderNumber: order.orderNum,
+        newStatus: statusMeta.label,
+        reason,
+        emailBody: customerMessage
+      })
+    });
+    alert(`✓ Status uppdaterad till "${statusMeta.label}" och kund-mail skickat.`);
+  } catch (err) {
+    console.warn('Status email error:', err);
+    // Fallback: open mailto
+    const mailto = `mailto:${encodeURIComponent(order.customer.email)}?subject=${encodeURIComponent('Order '+order.orderNum+' — '+statusMeta.label)}&body=${encodeURIComponent(customerMessage)}`;
+    if (confirm('Formspree kunde inte skicka. Öppna mailprogrammet manuellt istället?')) {
+      window.open(mailto, '_blank');
+    }
+  }
+  renderOrders();
+  renderQuickStats();
+}
+
+function buildStatusEmail(order, statusMeta, reason) {
+  const greeting = `Hej ${order.customer.name.split(' ')[0] || ''}!`;
+  let body = `${greeting}\n\nDin beställning #${order.orderNum} har fått ny status:\n\n${statusMeta.emoji} ${statusMeta.label}\n\n`;
+  switch (statusMeta.id) {
+    case 'paid':
+      body += 'Tack! Vi har tagit emot din betalning och börjar packa din beställning inom kort.';
+      break;
+    case 'packed':
+      body += 'Din beställning är packad och redo. Vi lämnar in den till PostNord inom 1-2 arbetsdagar.';
+      break;
+    case 'awaiting_stock':
+      body += 'En av produkterna kommer in nästa vecka. Vi hör av oss så snart vi kan skicka.';
+      break;
+    case 'out_of_stock':
+      body += `Vi är tyvärr slut på en av produkterna i din beställning. ${reason ? '\n\nDetaljer: ' + reason : ''}\n\nVi kontaktar dig om alternativ — eller återbetalar i den händelse vi inte kan leverera.`;
+      break;
+    case 'shipped':
+      body += 'Paketet är på väg! Du får ett separat mail från PostNord med spårningsnummer inom kort.';
+      break;
+    case 'delivered':
+      body += 'Hoppas allt kom fram bra! Vi vill gärna höra vad du tycker — svara på mailet eller skriv på Instagram @indoor_distance.';
+      break;
+    case 'cancelled':
+      body += `Vi har dessvärre fått avbryta din beställning.${reason ? '\n\nAnledning: ' + reason : ''}\n\nFull återbetalning på Swish-numret du betalade från sker inom 2-3 arbetsdagar. Vi beklagar besväret — kontakta oss om du har frågor.`;
+      break;
+    default:
+      body += 'Vi håller dig uppdaterad.';
+  }
+  body += `\n\nFrågor? Svara på det här mailet eller maila info.indoordistance@gmail.com\n\nHälsningar,\nIndoor Distance-teamet\nwww.indoordistance.se`;
+  return body;
+}
+
+function renderQuickStats() {
+  // Shop status
+  const st = getShopState();
+  document.getElementById('qsShop').textContent = st.open ? 'Öppen' : 'Stängd';
+  document.getElementById('qsShop').style.color = st.open ? '#4ade80' : '#fca5a5';
+  document.getElementById('qsShopSub').textContent = st.open ? 'Kunder kan köpa' : 'Visar "Kommer snart"';
+  // Stock
+  const inStock = PRODUCTS.filter(p => getStock(p.id) > 0).length;
+  document.getElementById('qsStock').textContent = inStock;
+  document.getElementById('qsTotal').textContent = PRODUCTS.length;
+  // Orders
+  const orders = JSON.parse(localStorage.getItem('id_orders') || '[]');
+  document.getElementById('qsOrders').textContent = orders.length;
+  // Revenue
+  const rev = orders.reduce((s, o) => s + (o.total || 0), 0);
+  document.getElementById('qsRev').textContent = rev.toLocaleString('sv-SE');
+}
+
+function exportOrders() {
+  const orders = JSON.parse(localStorage.getItem('id_orders') || '[]');
+  if (orders.length === 0) { alert('Inga beställningar att exportera.'); return; }
+  const csv = [
+    ['Ordernr','Datum','Namn','E-post','Telefon','Adress','Frakt','Totalt','Produkter'].join(';')
+  ];
+  orders.forEach(o => {
+    const date = new Date(o.ts).toISOString();
+    const items = o.items.map(i => `${i.qty}x ${i.name}${i.size?' ('+i.size+')':''}`).join(' | ');
+    csv.push([
+      o.orderNum, date, o.customer.name, o.customer.email,
+      o.customer.phone || '', o.customer.address || '',
+      o.shipping, o.total, items
+    ].map(v => '"' + String(v).replace(/"/g,'""') + '"').join(';'));
+  });
+  const blob = new Blob(['﻿' + csv.join('\n')], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `indoor-distance-orders-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function savePin() {
+  const newPin = document.getElementById('newPin').value;
+  if (!/^\d{4}$/.test(newPin)) {
+    alert('PIN måste vara exakt 4 siffror.');
+    return;
+  }
+  localStorage.setItem(ADMIN_PIN_KEY, newPin);
+  document.getElementById('newPin').value = '';
+  alert('Ny PIN sparad! Nästa inloggning använder den nya koden.');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  NEWSLETTER MANAGEMENT
+// ═══════════════════════════════════════════════════════════
+function getSubscribers() {
+  try {
+    return JSON.parse(localStorage.getItem('id_newsletter') || '[]');
+  } catch (e) { return []; }
+}
+
+function renderSubscribers() {
+  const subs = getSubscribers();
+  const countEl = document.getElementById('subCount');
+  const listEl = document.getElementById('subscriberList');
+  if (countEl) countEl.textContent = subs.length;
+  if (listEl) {
+    if (subs.length === 0) {
+      listEl.innerHTML = '<em style="color:var(--text-mute)">Inga prenumeranter än. När någon skriver upp sig på hemsidan dyker de upp här.</em>';
+    } else {
+      listEl.innerHTML = subs.map(e => `<div style="padding:6px 0;border-bottom:1px solid var(--border);color:var(--text)">${e}</div>`).join('');
+    }
+  }
+}
+
+function copySubscriberEmails() {
+  const subs = getSubscribers();
+  if (subs.length === 0) { alert('Inga prenumeranter att kopiera.'); return; }
+  const text = subs.join(', ');
+  navigator.clipboard.writeText(text).then(() => {
+    alert(`✓ ${subs.length} e-postadresser kopierade till urklipp.\n\nKlistra in i BCC-fältet i ditt mailprogram.`);
+  }).catch(() => {
+    // Fallback for older browsers
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    alert(`✓ ${subs.length} e-postadresser kopierade!`);
+  });
+}
+
+function exportSubscribers() {
+  const subs = getSubscribers();
+  if (subs.length === 0) { alert('Inga prenumeranter att exportera.'); return; }
+  // CSV format compatible with Mailchimp/Brevo
+  const csv = ['email,subscribed_at,source'];
+  subs.forEach(e => {
+    csv.push(`"${e.replace(/"/g, '""')}","${new Date().toISOString()}","Indoor Distance hemsida"`);
+  });
+  const blob = new Blob(['﻿' + csv.join('\n')], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `indoor-distance-prenumeranter-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function previewNewsletter() {
+  const subject = document.getElementById('nlSubject').value.trim();
+  const body = document.getElementById('nlBody').value.trim();
+  if (!subject || !body) { alert('Fyll i både ämne och meddelande.'); return; }
+  const w = window.open('', '_blank', 'width=640,height=720');
+  if (!w) { alert('Tillåt popups för att se förhandsgranskning.'); return; }
+  w.document.write(`
+    <!DOCTYPE html>
+    <html><head><meta charset="UTF-8"><title>Förhandsgranskning</title>
+    <style>
+      body{font-family:'Inter Tight',system-ui,sans-serif;background:#F7F4EE;color:#2d2d2d;margin:0;padding:0}
+      .wrap{max-width:560px;margin:0 auto;background:#FFF;box-shadow:0 4px 20px rgba(0,0,0,0.08)}
+      .hero{background:linear-gradient(180deg,#0E1626 0%,#182640 100%);color:#FFF;padding:40px 36px 32px;text-align:center}
+      .mark{width:60px;height:60px;margin:0 auto 16px;background:#000;border:2px solid #DCD0BC;border-radius:14px;color:#DCD0BC;font-family:Georgia,serif;font-weight:700;font-size:38px;line-height:1;padding-bottom:4px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px rgba(220,208,188,0.15)}
+      h1{font-size:24px;font-weight:800;margin:0 0 10px;color:#FFF}
+      .from{font-size:12px;color:rgba(255,255,255,0.7);letter-spacing:0.05em}
+      .body{padding:36px 36px 30px;font-size:15px;line-height:1.7;white-space:pre-wrap}
+      .foot{padding:24px 36px;background:#F0EDE5;font-size:11px;color:#888;text-align:center;border-top:1px solid rgba(0,0,0,0.06)}
+      .foot a{color:#B69861;text-decoration:none}
+    </style></head><body>
+    <div class="wrap">
+      <div class="hero">
+        <div class="mark">D</div>
+        <h1>${subject.replace(/</g,'&lt;')}</h1>
+        <div class="from">Från Indoor Distance · info.indoordistance@gmail.com</div>
+      </div>
+      <div class="body">${body.replace(/</g,'&lt;').replace(/\n/g,'<br>')}</div>
+      <div class="foot">
+        © 2026 Indoor Distance · Rödalidsvägen 4, Göteborg<br>
+        <a href="#">Avregistrera</a> · <a href="https://www.indoordistance.se">Besök hemsidan</a>
+      </div>
+    </div>
+    </body></html>
+  `);
+  w.document.close();
+}
+
+function sendNewsletter() {
+  const subs = getSubscribers();
+  if (subs.length === 0) { alert('Inga prenumeranter ännu.'); return; }
+  const subject = document.getElementById('nlSubject').value.trim();
+  const body = document.getElementById('nlBody').value.trim();
+  if (!subject || !body) { alert('Fyll i både ämne och meddelande.'); return; }
+  if (subs.length > 50) {
+    if (!confirm(`Du har ${subs.length} prenumeranter. Mailto: fungerar bäst för < 50 mottagare.\n\nFör så här stora utskick rekommenderar vi att du exporterar CSV och använder Mailchimp/Brevo istället.\n\nFortsätt ändå?`)) return;
+  }
+  // Build mailto with BCC
+  const bcc = subs.join(',');
+  const footer = `\n\n---\nDu får detta för att du anmält dig till nyhetsbrevet på indoordistance.se\nAvregistrera: svara på detta mail med "AVREGISTRERA"\n© 2026 Indoor Distance · Rödalidsvägen 4, Göteborg`;
+  const fullBody = body + footer;
+  // Use 'info.indoordistance@gmail.com' as the visible "To" so receivers don't see each other
+  const mailto = `mailto:info.indoordistance@gmail.com?bcc=${encodeURIComponent(bcc)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(fullBody)}`;
+  // Mailto URLs have a length limit (~2000 chars in many clients).
+  if (mailto.length > 1800) {
+    if (!confirm('Meddelandet är väldigt långt — vissa mailprogram kan ha problem. Fortsätt ändå? (Annars rekommenderar vi CSV-export + Mailchimp/Brevo)')) return;
+  }
+  window.location.href = mailto;
+  // Log the send so we know what was sent
+  const sent = JSON.parse(localStorage.getItem('id_newsletter_sent') || '[]');
+  sent.unshift({ ts: Date.now(), subject, recipientCount: subs.length, bodyPreview: body.slice(0, 200) });
+  localStorage.setItem('id_newsletter_sent', JSON.stringify(sent.slice(0, 50)));
+  setTimeout(() => {
+    alert(`✓ Mailprogrammet öppnat med ${subs.length} mottagare i BCC.\n\nGå till ditt mailprogram, kolla att allt ser bra ut, och klicka SKICKA.`);
+  }, 600);
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
