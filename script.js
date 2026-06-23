@@ -27,9 +27,9 @@ const PRODUCTS = [
     price: 350,
     category: 'man',
     images: [
-      'bilder/tröja man (1).png',
-      'bilder/tröja man (2).png',
-      'bilder/tröja man (3).png'
+      'bilder/troja-man-1.png',
+      'bilder/troja-man-2.png',
+      'bilder/troja-man-3.png'
     ],
     desc: 'Bekväm T-shirt i 100% ekologisk bomull med Indoor Distance-logga. Skuren för en avslappnad passform. Färg: vit.',
     color: 'Vit',
@@ -44,8 +44,8 @@ const PRODUCTS = [
     price: 350,
     category: 'kvinna',
     images: [
-      'bilder/tröja kvinna (1).png',
-      'bilder/tröja kvinna (2).png'
+      'bilder/troja-kvinna-1.png',
+      'bilder/troja-kvinna-2.png'
     ],
     desc: 'Skön T-shirt med tailored fit. Skuren för en bekväm och feminin passform. 100% ekologisk bomull. Färg: vit.',
     color: 'Vit',
@@ -60,8 +60,8 @@ const PRODUCTS = [
     price: 350,
     category: 'ungdom',
     images: [
-      'bilder/tröja ungdom (1).png',
-      'bilder/tröja ungdom (2).png'
+      'bilder/troja-ungdom-1.png',
+      'bilder/troja-ungdom-2.png'
     ],
     desc: 'Perfekt för klubbträningen. Mjuk bomull, hållbar i tvätten. För ungdomar. Färg: vit.',
     color: 'Vit',
@@ -76,9 +76,9 @@ const PRODUCTS = [
     price: 350,
     category: 'smabarn',
     images: [
-      'bilder/tröja småbarn (1).png',
-      'bilder/tröja småbarn (2).png',
-      'bilder/tröja småbarn (3).png'
+      'bilder/troja-smabarn-1.png',
+      'bilder/troja-smabarn-2.png',
+      'bilder/troja-smabarn-3.png'
     ],
     desc: 'Mjuk ekologisk bomull. Hudvänlig för känslig hud. Färg: vit. För de minsta.',
     color: 'Vit',
@@ -93,10 +93,10 @@ const PRODUCTS = [
     price: 599,
     category: 'hoodie',
     images: [
-      'bilder/Skärmbild 2026-06-02 065433.png',
-      'bilder/Skärmbild 2026-06-02 065441.png',
-      'bilder/Skärmbild 2026-06-02 065450.png',
-      'bilder/Skärmbild 2026-06-02 065458.png'
+      'bilder/screenshot-2026-06-02-065433.png',
+      'bilder/screenshot-2026-06-02-065441.png',
+      'bilder/screenshot-2026-06-02-065450.png',
+      'bilder/screenshot-2026-06-02-065458.png'
     ],
     desc: 'Mjuk, varm huvtröja med Indoor Distance-logga på bröstet och stor logga på ryggen. Borstad insida för extra komfort. 80% bomull, 20% polyester.',
     color: 'Ljusgrå',
@@ -111,10 +111,10 @@ const PRODUCTS = [
     price: 549,
     category: 'hoodie',
     images: [
-      'bilder/Skärmbild 2026-06-02 065541.png',
-      'bilder/Skärmbild 2026-06-02 065556.png',
-      'bilder/Skärmbild 2026-06-02 065505.png',
-      'bilder/Skärmbild 2026-06-02 065548.png'
+      'bilder/screenshot-2026-06-02-065541.png',
+      'bilder/screenshot-2026-06-02-065556.png',
+      'bilder/screenshot-2026-06-02-065505.png',
+      'bilder/screenshot-2026-06-02-065548.png'
     ],
     desc: 'Huvtröja för ungdomar. Lika varm och bekväm som vuxenmodellen, anpassad i storlek. Indoor Distance-logga på bröstet och rygg.',
     color: 'Ljusgrå',
@@ -129,9 +129,9 @@ const PRODUCTS = [
     price: 499,
     category: 'hoodie',
     images: [
-      'bilder/Skärmbild 2026-06-02 065603.png',
-      'bilder/Skärmbild 2026-06-02 065531.png',
-      'bilder/Skärmbild 2026-06-02 065610.png'
+      'bilder/screenshot-2026-06-02-065603.png',
+      'bilder/screenshot-2026-06-02-065531.png',
+      'bilder/screenshot-2026-06-02-065610.png'
     ],
     desc: 'Mjuk huvtröja för de minsta. Varm fleece-insida som sitter perfekt över tröjan. Liten ID-logga på bröstet, stor logga på ryggen.',
     color: 'Ljusgrå',
@@ -163,7 +163,7 @@ const PRODUCTS = [
     price: 50,
     category: 'klister',
     images: [
-      'bilder/klistermärke.png'
+      'bilder/klistermarke.png'
     ],
     desc: 'Vattenavstötande vinyl, 10 × 10 cm. Perfekt för flaskan, datorn, bilrutan eller skateboarden. Hållbar i flera år.',
     sizes: null,
