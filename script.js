@@ -10,6 +10,385 @@ const TOKEN_REFRESH = 'id_web_refresh';
 const SWISH_NUMBER  = '076 396 88 61';
 const FREE_SHIPPING_THRESHOLD = 500;
 
+// ═══════════════════════════════════════════════════════════
+//  MULTIVALUTA — 8 valutor, auto-detect, charm-avrundning
+//  Källa: ungefärliga snittkurser juni 2026 (uppdatera vid behov)
+// ═══════════════════════════════════════════════════════════
+const CURRENCIES = {
+  SEK: { code:'SEK', symbol:'kr',  position:'after',  decimals:0, rate:1.00,    name:'Svenska kronor' },
+  NOK: { code:'NOK', symbol:'kr',  position:'after',  decimals:0, rate:0.99,    name:'Norska kronor' },
+  DKK: { code:'DKK', symbol:'kr',  position:'after',  decimals:0, rate:0.66,    name:'Danska kroner' },
+  EUR: { code:'EUR', symbol:'€',   position:'before', decimals:2, rate:0.088,   name:'Euro' },
+  USD: { code:'USD', symbol:'$',   position:'before', decimals:2, rate:0.095,   name:'US Dollar' },
+  GBP: { code:'GBP', symbol:'£',   position:'before', decimals:2, rate:0.075,   name:'British Pound' },
+  CHF: { code:'CHF', symbol:'CHF', position:'before', decimals:2, rate:0.085,   name:'Schweizerfranc' },
+  PLN: { code:'PLN', symbol:'zł',  position:'after',  decimals:0, rate:0.39,    name:'Polski złoty' }
+};
+
+const LANG_TO_CURRENCY = {
+  sv:'SEK', no:'NOK', da:'DKK', fi:'EUR',
+  en:'USD', de:'EUR', fr:'EUR', es:'EUR',
+  it:'EUR', nl:'EUR', pl:'PLN', pt:'EUR',
+  ja:'USD', ko:'USD', zh:'USD', ar:'USD'
+};
+
+const COUNTRY_TO_CURRENCY = {
+  SE:'SEK', NO:'NOK', DK:'DKK', FI:'EUR', IS:'EUR',
+  DE:'EUR', FR:'EUR', ES:'EUR', IT:'EUR', NL:'EUR', BE:'EUR', AT:'EUR', IE:'EUR', PT:'EUR', GR:'EUR',
+  US:'USD', CA:'USD', MX:'USD',
+  GB:'GBP', UK:'GBP',
+  CH:'CHF', LI:'CHF',
+  PL:'PLN',
+  AU:'USD', NZ:'USD', JP:'USD', KR:'USD'
+};
+
+// Charm-avrundning: 9-ändelser eller .99 för småbelopp
+function charmRound(amount, currency) {
+  if (!isFinite(amount) || amount <= 0) return 0;
+  var hasDecimals = CURRENCIES[currency] && CURRENCIES[currency].decimals > 0;
+  // Sub-10: .99 för USD/EUR/GBP/CHF, heltal annars
+  if (amount < 10) {
+    if (hasDecimals) {
+      var n = Math.max(1, Math.ceil(amount));
+      return Math.max(0.99, n - 0.01);
+    }
+    return Math.max(1, Math.round(amount));
+  }
+  // 10-99
+  if (amount < 100) return Math.round(amount);
+  // 100-999: prova nearest 9-ändelse om inom 5%, annars heltal
+  if (amount < 1000) {
+    var nearest9 = Math.round((amount - 9) / 10) * 10 + 9;
+    if (Math.abs(amount - nearest9) / amount < 0.05) return nearest9;
+    return Math.round(amount);
+  }
+  // 1000+: prova nearest 99-ändelse om inom 2.5%, annars rund 10
+  var nearest99 = Math.round(amount / 100) * 100 - 1;
+  if (Math.abs(amount - nearest99) / amount < 0.025) return nearest99;
+  return Math.round(amount / 10) * 10;
+}
+
+function getActiveCurrency() {
+  // 1. Användaröverskridning (localStorage)
+  try {
+    var saved = localStorage.getItem('id_currency');
+    if (saved && CURRENCIES[saved]) return saved;
+  } catch(e){}
+  // 2. Auto från språk
+  try {
+    var lang = (localStorage.getItem('id_lang') || navigator.language || 'sv').toLowerCase().slice(0,2);
+    if (LANG_TO_CURRENCY[lang]) return LANG_TO_CURRENCY[lang];
+  } catch(e){}
+  // 3. Auto från geo (IntlLocale → region)
+  try {
+    var loc = new Intl.Locale(navigator.language);
+    var region = (loc.region || '').toUpperCase();
+    if (COUNTRY_TO_CURRENCY[region]) return COUNTRY_TO_CURRENCY[region];
+  } catch(e){}
+  return 'SEK';
+}
+
+function setCurrency(code) {
+  if (!CURRENCIES[code]) return false;
+  try { localStorage.setItem('id_currency', code); } catch(e){}
+  if (typeof rerenderAllPrices === 'function') rerenderAllPrices();
+  return true;
+}
+
+function formatPrice(sekAmount, opts) {
+  opts = opts || {};
+  var code = opts.currency || getActiveCurrency();
+  var cur = CURRENCIES[code] || CURRENCIES.SEK;
+  var raw = sekAmount * cur.rate;
+  var rounded = charmRound(raw, code);
+  var str;
+  if (rounded !== Math.floor(rounded)) {
+    str = rounded.toFixed(2);
+  } else {
+    str = String(Math.round(rounded));
+  }
+  // Tusentalsavgränsare med mellanslag (svensk standard) eller komma
+  if (rounded >= 1000) {
+    var intPart = Math.floor(rounded);
+    var dec = (rounded !== intPart) ? '.' + str.split('.')[1] : '';
+    var sep = (cur.position === 'before') ? ',' : ' ';
+    str = String(intPart).replace(/\B(?=(\d{3})+(?!\d))/g, sep) + dec;
+  }
+  if (cur.position === 'before') return cur.symbol + str;
+  return str + ' ' + cur.symbol;
+}
+
+// Re-render alla priser i UI när valuta byts
+function rerenderAllPrices() {
+  // Produktkort & checkout
+  try { if (typeof renderProducts === 'function') renderProducts(); } catch(e){}
+  try { if (typeof renderCart === 'function') renderCart(); } catch(e){}
+  // Statiska pris-element märkta med data-sek-price
+  document.querySelectorAll('[data-sek-price]').forEach(function(el){
+    var sek = parseFloat(el.getAttribute('data-sek-price'));
+    if (isFinite(sek)) el.textContent = formatPrice(sek);
+  });
+  // Plan-priser
+  document.querySelectorAll('[data-plan-price]').forEach(function(el){
+    var sek = parseFloat(el.getAttribute('data-plan-price'));
+    if (isFinite(sek)) el.textContent = formatPrice(sek);
+  });
+  // Currency-picker badge + disclaimer
+  var code = getActiveCurrency();
+  var b = document.getElementById('currencyPickerBadge');
+  if (b) b.textContent = code;
+  var disc = document.getElementById('currencyDisclaimerCode');
+  if (disc) disc.textContent = code;
+}
+
+window.CURRENCIES = CURRENCIES;
+window.charmRound = charmRound;
+window.getActiveCurrency = getActiveCurrency;
+window.setCurrency = setCurrency;
+window.formatPrice = formatPrice;
+window.rerenderAllPrices = rerenderAllPrices;
+
+// ═══════════════════════════════════════════════════════════
+//  GDPR COOKIE CONSENT
+//  3 kategorier (necessary alltid på, analytics, marketing)
+//  Visas första besöket + om policy-version har uppdaterats
+// ═══════════════════════════════════════════════════════════
+const COOKIE_CONSENT_KEY = 'id_cookie_consent';
+const COOKIE_POLICY_VERSION = '1.0';
+
+function getCookieConsent() {
+  try {
+    const raw = localStorage.getItem(COOKIE_CONSENT_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed.version !== COOKIE_POLICY_VERSION) return null;
+    return parsed;
+  } catch(e) { return null; }
+}
+
+function saveCookieConsent(prefs) {
+  const consent = {
+    version: COOKIE_POLICY_VERSION,
+    necessary: true,
+    analytics: !!prefs.analytics,
+    marketing: !!prefs.marketing,
+    ts: Date.now()
+  };
+  try { localStorage.setItem(COOKIE_CONSENT_KEY, JSON.stringify(consent)); } catch(e){}
+  applyCookieConsent(consent);
+  return consent;
+}
+
+function applyCookieConsent(consent) {
+  // Aktivera/avaktivera analys-skript här. Just nu har vi inga, men hooken finns.
+  // Exempel: if (consent.analytics) { initAnalytics(); }
+  document.documentElement.classList.toggle('consent-analytics', !!consent.analytics);
+  document.documentElement.classList.toggle('consent-marketing', !!consent.marketing);
+  // Om användaren tackat nej till analys: rensa eventuell tidigare analys-data
+  if (!consent.analytics) {
+    try {
+      Object.keys(localStorage).filter(k => k.startsWith('id_analytics_')).forEach(k => localStorage.removeItem(k));
+    } catch(e){}
+  }
+}
+
+function showCookieBanner() {
+  const b = document.getElementById('cookieBanner');
+  if (b) b.style.display = '';
+}
+function hideCookieBanner() {
+  const b = document.getElementById('cookieBanner');
+  if (b) b.style.display = 'none';
+}
+
+function acceptCookies(mode) {
+  let prefs;
+  if (mode === 'all') prefs = { analytics: true, marketing: true };
+  else prefs = { analytics: false, marketing: false }; // 'necessary' eller default
+  saveCookieConsent(prefs);
+  hideCookieBanner();
+  if (typeof showToast === 'function') {
+    showToast(mode === 'all' ? '✓ Tack — du kan ändra ditt val i sidfoten' : '✓ Endast nödvändiga cookies — du kan ändra senare');
+  }
+}
+
+function openCookiePrefs() {
+  const m = document.getElementById('cookiePrefsModal');
+  if (!m) return;
+  // Förfyll med eventuellt sparat val
+  const cur = getCookieConsent() || { analytics: false, marketing: false };
+  const a = document.getElementById('cookieToggleAnalytics');
+  const mk = document.getElementById('cookieToggleMarketing');
+  if (a) a.checked = !!cur.analytics;
+  if (mk) mk.checked = !!cur.marketing;
+  m.style.display = 'flex';
+}
+
+function closeCookiePrefs() {
+  const m = document.getElementById('cookiePrefsModal');
+  if (m) m.style.display = 'none';
+}
+
+function saveCookiePrefs() {
+  const a = document.getElementById('cookieToggleAnalytics');
+  const mk = document.getElementById('cookieToggleMarketing');
+  saveCookieConsent({
+    analytics: a ? a.checked : false,
+    marketing: mk ? mk.checked : false
+  });
+  closeCookiePrefs();
+  hideCookieBanner();
+  if (typeof showToast === 'function') showToast('✓ Cookie-val sparat');
+}
+
+// Init: visa banner om samtycke saknas
+document.addEventListener('DOMContentLoaded', () => {
+  const consent = getCookieConsent();
+  if (consent) {
+    applyCookieConsent(consent);
+    hideCookieBanner();
+  } else {
+    // Vänta lite så sidan hinner ladda först
+    setTimeout(showCookieBanner, 800);
+  }
+});
+
+window.acceptCookies = acceptCookies;
+window.openCookiePrefs = openCookiePrefs;
+window.closeCookiePrefs = closeCookiePrefs;
+window.saveCookiePrefs = saveCookiePrefs;
+window.getCookieConsent = getCookieConsent;
+
+// ═══════════════════════════════════════════════════════════
+//  PRIVACY-FRIENDLY ANALYTICS (egen lättvikt, GDPR-vänlig)
+//
+//  Designprinciper:
+//  • Ingen tredjepart (Google/Meta) — allt går till vår egen Supabase
+//  • Ingen persistent identifier — sessions-baserad UUID (slängs vid stängning)
+//  • Respekterar Do Not Track-header
+//  • Ingen IP-lagring (skickas inte, Supabase loggar inte automatiskt)
+//  • Endast aggregerad data — vilka sidor, vilka knappar, ingen "vem"
+//  • Opt-in via cookie-consent (kategori: analytics)
+// ═══════════════════════════════════════════════════════════
+
+const ANALYTICS_TABLE = 'analytics_events';
+let _analyticsSessionId = null;
+
+function getAnalyticsSession() {
+  if (_analyticsSessionId) return _analyticsSessionId;
+  try {
+    _analyticsSessionId = sessionStorage.getItem('id_an_sid');
+    if (!_analyticsSessionId) {
+      _analyticsSessionId = 'sid-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+      sessionStorage.setItem('id_an_sid', _analyticsSessionId);
+    }
+  } catch(e) {
+    _analyticsSessionId = 'fallback-' + Math.random().toString(36).slice(2);
+  }
+  return _analyticsSessionId;
+}
+
+function canTrack() {
+  // Respektera DNT
+  if (navigator.doNotTrack === '1' || window.doNotTrack === '1') return false;
+  const consent = getCookieConsent();
+  return !!(consent && consent.analytics);
+}
+
+async function trackEvent(name, props) {
+  if (!canTrack()) return;
+  const evt = {
+    event_name: String(name).slice(0, 60),
+    session_id: getAnalyticsSession(),
+    page_path: location.pathname + location.hash,
+    referrer: document.referrer ? new URL(document.referrer).hostname : null,
+    locale: (localStorage.getItem('id_lang') || navigator.language || '').slice(0, 5),
+    currency: getActiveCurrency(),
+    viewport: `${window.innerWidth}x${window.innerHeight}`,
+    props: props ? JSON.stringify(props).slice(0, 500) : null,
+    ts: new Date().toISOString()
+  };
+  try {
+    if (!SUPABASE_URL || !SUPABASE_KEY) return;
+    await fetch(SUPABASE_URL + '/rest/v1/' + ANALYTICS_TABLE, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_KEY,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(evt)
+    });
+  } catch(e) { /* analytics misslyckas tyst */ }
+}
+
+// Auto-track: sidvisning + scroll-djup + utlänk + outbound click
+let _maxScroll = 0;
+let _pageStart = Date.now();
+
+function autoTrackPageview() {
+  if (!canTrack()) return;
+  trackEvent('pageview', { hash: location.hash || '#hem' });
+  _maxScroll = 0;
+  _pageStart = Date.now();
+}
+
+window.addEventListener('scroll', () => {
+  if (!canTrack()) return;
+  const max = (document.documentElement.scrollHeight - window.innerHeight) || 1;
+  const pct = Math.round(window.scrollY / max * 100);
+  if (pct > _maxScroll && pct >= 25 && pct % 25 === 0 && pct <= 100) {
+    _maxScroll = pct;
+    trackEvent('scroll_depth', { percent: pct });
+  }
+}, { passive: true });
+
+window.addEventListener('beforeunload', () => {
+  if (!canTrack()) return;
+  const dwell = Math.round((Date.now() - _pageStart) / 1000);
+  try {
+    navigator.sendBeacon && navigator.sendBeacon(
+      SUPABASE_URL + '/rest/v1/' + ANALYTICS_TABLE,
+      new Blob([JSON.stringify({
+        event_name: 'dwell_time',
+        session_id: getAnalyticsSession(),
+        page_path: location.pathname + location.hash,
+        props: JSON.stringify({ seconds: dwell, max_scroll: _maxScroll }),
+        ts: new Date().toISOString()
+      })], { type: 'application/json' })
+    );
+  } catch(e) {}
+});
+
+// Spåra hash-byten (SPA-router)
+window.addEventListener('hashchange', autoTrackPageview);
+
+// Spåra utgående länkar
+document.addEventListener('click', e => {
+  if (!canTrack()) return;
+  const a = e.target.closest && e.target.closest('a[href]');
+  if (!a) return;
+  const href = a.getAttribute('href');
+  if (!href) return;
+  if (href.startsWith('http') && !href.includes(location.hostname)) {
+    trackEvent('outbound_click', { url: new URL(href).hostname });
+  }
+}, true);
+
+// Init: vid laddning
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(autoTrackPageview, 1500);
+});
+
+// Helper: track button-klick deklarativt
+function trackBtn(name) {
+  return function(e) { trackEvent('click', { btn: name }); };
+}
+
+window.trackEvent = trackEvent;
+window.trackBtn = trackBtn;
+window.getAnalyticsSession = getAnalyticsSession;
+
 // Formspree endpoints — separate forms for contact and orders
 const FORMSPREE_CONTACT = 'https://formspree.io/f/xykdnpno'; // contact form + newsletter signups
 const FORMSPREE_ORDER   = 'https://formspree.io/f/mjgpdoyk'; // purchases & order updates
@@ -24,7 +403,7 @@ const PRODUCTS = [
     id: 'troja-herr',
     name: 'Indoor Distance T-shirt — Herr',
     tag: 'Herr',
-    price: 350,
+    price: 349,
     category: 'man',
     images: [
       'bilder/troja-man-1.png',
@@ -41,7 +420,7 @@ const PRODUCTS = [
     id: 'troja-dam',
     name: 'Indoor Distance T-shirt — Dam',
     tag: 'Dam',
-    price: 350,
+    price: 349,
     category: 'kvinna',
     images: [
       'bilder/troja-kvinna-1.png',
@@ -57,7 +436,7 @@ const PRODUCTS = [
     id: 'troja-ungdom',
     name: 'Indoor Distance T-shirt — Ungdom',
     tag: 'Ungdom',
-    price: 350,
+    price: 299,
     category: 'ungdom',
     images: [
       'bilder/troja-ungdom-1.png',
@@ -73,7 +452,7 @@ const PRODUCTS = [
     id: 'troja-smabarn',
     name: 'Indoor Distance T-shirt — Barn',
     tag: 'Barn',
-    price: 350,
+    price: 249,
     category: 'smabarn',
     images: [
       'bilder/troja-smabarn-1.png',
@@ -143,7 +522,7 @@ const PRODUCTS = [
     id: 'mugg',
     name: 'Indoor Distance Mugg',
     tag: 'Mugg',
-    price: 180,
+    price: 179,
     category: 'mugg',
     images: [
       'bilder/mugg (1).png',
@@ -160,7 +539,7 @@ const PRODUCTS = [
     id: 'klistermarke',
     name: 'Indoor Distance Klistermärke',
     tag: 'Klistermärke',
-    price: 50,
+    price: 49,
     category: 'klister',
     images: [
       'bilder/klistermarke.png'
@@ -249,23 +628,23 @@ const SIZE_GUIDE = {
 
 // Subscription plans (used by search to match queries about pricing)
 const PLANS = [
-  { name:'Med reklam · 1 mån',     price:100,  href:'#priser',
+  { name:'Med reklam · 1 mån',     price:99,  href:'#priser',
     keywords:['reklam','budget','billig','testa','månad','plan','prenumeration'] },
-  { name:'Med reklam · Halv säsong', price:200, href:'#priser',
+  { name:'Med reklam · Halv säsong', price:199, href:'#priser',
     keywords:['reklam','budget','halv','säsong','plan','prenumeration'] },
-  { name:'Med reklam · Hel säsong',  price:350, href:'#priser',
+  { name:'Med reklam · Hel säsong',  price:349, href:'#priser',
     keywords:['reklam','budget','hel','säsong','år','plan','prenumeration'] },
-  { name:'Individuell · 1 mån',      price:200, href:'#priser',
+  { name:'Individuell · 1 mån',      price:199, href:'#priser',
     keywords:['individuell','personlig','reklamfri','konto','månad','plan'] },
-  { name:'Individuell · Halv säsong',price:350, href:'#priser',
+  { name:'Individuell · Halv säsong',price:349, href:'#priser',
     keywords:['individuell','personlig','reklamfri','halv','säsong','plan'] },
-  { name:'Individuell · Hel säsong', price:650, href:'#priser',
+  { name:'Individuell · Hel säsong', price:649, href:'#priser',
     keywords:['individuell','personlig','reklamfri','hel','säsong','år','plan','populär'] },
-  { name:'Klubb · 1 mån',            price:1000,href:'#priser',
+  { name:'Klubb · 1 mån',            price:999,href:'#priser',
     keywords:['klubb','team','tränare','månad','plan','förening'] },
-  { name:'Klubb · Halv säsong',      price:2500,href:'#priser',
+  { name:'Klubb · Halv säsong',      price:2499,href:'#priser',
     keywords:['klubb','team','tränare','halv','säsong','plan','förening'] },
-  { name:'Klubb · Hel säsong',       price:4500,href:'#priser',
+  { name:'Klubb · Hel säsong',       price:4499,href:'#priser',
     keywords:['klubb','team','tränare','hel','säsong','år','plan','förening'] }
 ];
 
@@ -435,7 +814,7 @@ function renderProductCard(p, i) {
           </div>
         ` : ''}
         <div class="product-bottom">
-          <span class="product-price">${p.price} kr</span>
+          <span class="product-price">${formatPrice(p.price)}</span>
           ${isSoldOut
             ? `<button class="btn-add disabled" disabled>Slutsåld</button>`
             : `<button class="btn-add" onclick="event.stopPropagation();quickAdd('${p.id}')">${p.sizes ? 'Välj storlek →' : 'Lägg till'}</button>`
@@ -456,7 +835,7 @@ function renderPreviewCard(p, i) {
         <span class="product-tag">${p.tag}</span>
         <h3>${p.name}</h3>
         <div class="product-bottom">
-          <span class="product-price">${p.price} kr</span>
+          <span class="product-price">${formatPrice(p.price)}</span>
           <button class="btn-add disabled" disabled>Kommer snart</button>
         </div>
       </div>
@@ -579,7 +958,7 @@ function openProductModal(id) {
   document.getElementById('pmTag').textContent = p.tag;
   document.getElementById('pmName').textContent = p.name;
   document.getElementById('pmDesc').textContent = p.desc;
-  document.getElementById('pmPrice').textContent = p.price + ' kr';
+  document.getElementById('pmPrice').textContent = formatPrice(p.price);
   document.getElementById('pmQty').textContent = modalQuantity;
   const sizesEl = document.getElementById('pmSizes');
   if (p.sizes) {
@@ -726,14 +1105,14 @@ function updateCartUI() {
   const cartCountEl = document.getElementById('cartCount');
   if (!cartCountEl) return; // Not on main page
   cartCountEl.textContent = cart.reduce((s, i) => s + i.qty, 0);
-  document.getElementById('cartTotal').textContent = total + ' kr';
-  document.getElementById('cartShipping').textContent = shipping === 0 ? 'Gratis ✓' : (shipping + ' kr');
-  // Free shipping progress
+  document.getElementById('cartTotal').textContent = formatPrice(total);
+  document.getElementById('cartShipping').textContent = shipping === 0 ? 'Gratis ✓' : formatPrice(shipping);
+  // Free shipping progress (visa avstånd kvar i aktiv valuta)
   const freeRow = document.getElementById('cartFreeShip');
   if (freeRow) {
     if (sub === 0) freeRow.querySelector('span').textContent = '';
     else if (sub >= FREE_SHIPPING_THRESHOLD) freeRow.querySelector('span').textContent = '🎁 Gratis frakt!';
-    else freeRow.querySelector('span').textContent = `${FREE_SHIPPING_THRESHOLD - sub} kr kvar till fri frakt`;
+    else freeRow.querySelector('span').textContent = `${formatPrice(FREE_SHIPPING_THRESHOLD - sub)} kvar till fri frakt`;
   }
   const list = document.getElementById('cartItems');
   if (cart.length === 0) {
@@ -752,7 +1131,7 @@ function updateCartUI() {
       <div class="cart-item-info">
         <div class="cart-item-name">${item.name}</div>
         ${item.size ? '<div style="font-size:11px;color:var(--text-mute);margin-top:1px">Storlek: '+item.size+'</div>' : ''}
-        <div class="cart-item-price">${item.price} kr</div>
+        <div class="cart-item-price">${formatPrice(item.price)}</div>
         <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
           <button onclick="changeQty('${item.key}', -1)" style="background:var(--surface-2);border:1px solid var(--border-2);color:#FFF;width:26px;height:26px;border-radius:6px;cursor:pointer;font-size:14px">−</button>
           <span style="font-size:13px;font-weight:600;min-width:20px;text-align:center">${item.qty}</span>
@@ -1074,6 +1453,154 @@ async function webLogout() {
   showToast('✓ Utloggad');
 }
 
+// ═══════════════════════════════════════════════════════════
+//  GDPR — Dataexport + Konto-radering (artikel 15, 17 & 20)
+// ═══════════════════════════════════════════════════════════
+async function gdprExportData() {
+  if (typeof showToast === 'function') showToast('📦 Samlar in dina data...');
+  const bundle = {
+    exportedAt: new Date().toISOString(),
+    policyVersion: COOKIE_POLICY_VERSION,
+    source: 'indoordistance.github.io',
+    profile: null,
+    throws: [],
+    orders: [],
+    settings: {},
+    localData: {}
+  };
+
+  // Hämta från Supabase
+  try {
+    const token = getToken();
+    if (token) {
+      const userRes = await fetch(SUPABASE_URL + '/auth/v1/user', {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
+      });
+      if (userRes.ok) bundle.profile = await userRes.json();
+    }
+  } catch(e) { console.warn('Profile fetch failed:', e); }
+
+  // Lokal data (träningsdata + preferenser sparas främst lokalt)
+  try {
+    Object.keys(localStorage).filter(k => k.startsWith('id_')).forEach(k => {
+      try { bundle.localData[k] = JSON.parse(localStorage.getItem(k)); }
+      catch(e) { bundle.localData[k] = localStorage.getItem(k); }
+    });
+  } catch(e){}
+
+  // Beställningar (lokala spår)
+  try {
+    const orders = JSON.parse(localStorage.getItem('id_orders') || '[]');
+    bundle.orders = orders;
+  } catch(e){}
+
+  // Inställningar
+  bundle.settings = {
+    language: localStorage.getItem('id_lang') || null,
+    currency: getActiveCurrency(),
+    cookieConsent: getCookieConsent()
+  };
+
+  // Ladda ner som JSON
+  const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const stamp = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = 'indoor-distance-mina-data-' + stamp + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  if (typeof showToast === 'function') showToast('✓ Dina data laddas ner');
+}
+
+function gdprStartDelete() {
+  const m = document.getElementById('gdprDeleteModal');
+  if (!m) return;
+  const inp = document.getElementById('gdprConfirmText');
+  if (inp) inp.value = '';
+  const btn = document.getElementById('gdprConfirmBtn');
+  if (btn) { btn.disabled = true; btn.style.opacity = 0.5; }
+  m.style.display = 'flex';
+}
+function gdprCancelDelete() {
+  const m = document.getElementById('gdprDeleteModal');
+  if (m) m.style.display = 'none';
+}
+
+async function gdprConfirmDelete() {
+  const btn = document.getElementById('gdprConfirmBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Behandlar...'; }
+
+  // Hämta användar-info för notis
+  let userInfo = { email: 'okänd', id: 'okänd' };
+  try {
+    const token = getToken();
+    if (token) {
+      const r = await fetch(SUPABASE_URL + '/auth/v1/user', {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
+      });
+      if (r.ok) {
+        const u = await r.json();
+        userInfo = { email: u.email || 'okänd', id: u.id || 'okänd' };
+      }
+    }
+  } catch(e){}
+
+  // Notisera VD via Formspree (för manuell radering av kvarvarande data inom 30 dagar)
+  try {
+    await fetch(FORMSPREE_CONTACT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        _subject: '🗑️ GDPR konto-radering begärd',
+        type: 'gdpr_account_deletion',
+        userEmail: userInfo.email,
+        userId: userInfo.id,
+        requestedAt: new Date().toISOString(),
+        instruction: 'Radera all data för denna användare inom 30 dagar (utom bokföringspliktig orderhistorik som ska avidentifieras).'
+      })
+    });
+  } catch(e) { console.warn('Notification failed:', e); }
+
+  // Lokal sanering — radera allt id_-prefix
+  try {
+    Object.keys(localStorage).filter(k => k.startsWith('id_')).forEach(k => localStorage.removeItem(k));
+  } catch(e){}
+
+  // Logga ut
+  clearTokens();
+
+  // Visa bekräftelse
+  gdprCancelDelete();
+  document.getElementById('kontoDashboard').style.display = 'none';
+  document.getElementById('kontoLogin').style.display = 'block';
+  updateAuthNavButton(null);
+
+  // Stor bekräftelse-modal
+  const ok = document.createElement('div');
+  ok.className = 'modal-backdrop';
+  ok.style.cssText = 'position:fixed;inset:0;background:rgba(8,14,26,0.85);backdrop-filter:blur(14px);z-index:10001;display:flex;align-items:center;justify-content:center;padding:20px';
+  ok.innerHTML = `<div style="background:linear-gradient(180deg,#1A2540,#131D34);border:1px solid rgba(220,208,188,0.30);border-radius:20px;padding:36px;max-width:460px;width:100%;text-align:center">
+    <div style="font-size:56px;margin-bottom:14px">✓</div>
+    <h2 style="font-family:var(--serif);font-style:italic;font-size:26px;color:var(--text);margin-bottom:10px">Begäran mottagen</h2>
+    <p style="font-size:13px;color:var(--text-mute);line-height:1.65;margin-bottom:18px">
+      Ditt konto kommer raderas inom <strong style="color:var(--accent)">30 dagar</strong>. Du har loggats ut och dina lokala data är redan borttagna från denna enhet.
+    </p>
+    <p style="font-size:12px;color:var(--text-mute);line-height:1.55;margin-bottom:22px">
+      Vill du ångra dig? Mejla <a href="mailto:info.indoordistance@gmail.com" style="color:var(--accent)">info.indoordistance@gmail.com</a> inom 30 dagar.
+    </p>
+    <button class="btn-primary" onclick="this.closest('.modal-backdrop').remove(); window.location.href='index.html#hem'">Tillbaka till startsidan</button>
+  </div>`;
+  document.body.appendChild(ok);
+}
+
+window.gdprExportData = gdprExportData;
+window.gdprStartDelete = gdprStartDelete;
+window.gdprCancelDelete = gdprCancelDelete;
+window.gdprConfirmDelete = gdprConfirmDelete;
+
 function handleAuthClick() {
   document.getElementById('konto').scrollIntoView({ behavior: 'smooth' });
 }
@@ -1215,7 +1742,7 @@ function renderDashboard() {
         <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:10px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
             <div style="font-weight:700">Order #${o.orderNum}</div>
-            <div style="font-family:var(--serif);font-style:italic;color:var(--accent);font-size:18px">${o.total} kr</div>
+            <div style="font-family:var(--serif);font-style:italic;color:var(--accent);font-size:18px">${formatPrice(o.total)}</div>
           </div>
           <div style="font-size:12px;color:var(--text-mute);margin-bottom:6px">${new Date(o.ts).toLocaleString('sv-SE')}</div>
           <div style="font-size:12px;color:var(--text-mute)">${o.items.length} artiklar · ${o.status === 'pending_payment' ? '⏳ Väntar betalning' : '✓ Betald'}</div>
@@ -1381,7 +1908,7 @@ function runSearch(query) {
           <div class="search-result-name">${d.name}</div>
           <div class="search-result-meta">${d.tag} · Produkt</div>
         </div>
-        <div class="search-result-price">${d.price} kr</div>
+        <div class="search-result-price">${formatPrice(d.price)}</div>
       </div>`;
     }
     if (item.kind === 'plan') {
@@ -1391,7 +1918,7 @@ function runSearch(query) {
           <div class="search-result-name">${d.name}</div>
           <div class="search-result-meta">Prenumeration</div>
         </div>
-        <div class="search-result-price">${d.price} kr</div>
+        <div class="search-result-price">${formatPrice(d.price)}</div>
       </div>`;
     }
     return `<div class="search-result" onclick="location.href='${d.href}';closeSearch()">
@@ -2878,6 +3405,39 @@ document.addEventListener('click', e => {
   if (sw && !sw.contains(e.target)) closeLangMenu();
 });
 
+// ─── Currency picker UI ───────────────────────────────────
+function toggleCurrencyMenu(e) {
+  if (e) e.stopPropagation();
+  const m = document.getElementById('currencyMenu');
+  if (m) m.classList.toggle('open');
+}
+function closeCurrencyMenu() {
+  const m = document.getElementById('currencyMenu');
+  if (m) m.classList.remove('open');
+}
+function setCurrencyAndClose(code) {
+  setCurrency(code);
+  closeCurrencyMenu();
+  rerenderAllPrices();
+  if (typeof showToast === 'function') {
+    showToast('Valuta: ' + CURRENCIES[code].name);
+  }
+}
+document.addEventListener('click', e => {
+  const sw = document.getElementById('currencySwitcher');
+  if (sw && !sw.contains(e.target)) closeCurrencyMenu();
+});
+
+// Init: visa nuvarande valuta i badge + rendera om priserna
+document.addEventListener('DOMContentLoaded', () => {
+  const badge = document.getElementById('currencyPickerBadge');
+  if (badge) badge.textContent = getActiveCurrency();
+  setTimeout(rerenderAllPrices, 400);
+});
+
+window.toggleCurrencyMenu = toggleCurrencyMenu;
+window.setCurrencyAndClose = setCurrencyAndClose;
+
 // ═══════════════════════════════════════════════════════════
 //  SECTION NAV — floating dots that follow scroll position
 // ═══════════════════════════════════════════════════════════
@@ -2933,7 +3493,7 @@ function buildSpotlightIndex() {
     idx.push({
       type: 'product', icon: '🛍️',
       name: p.name,
-      meta: `${p.tag} · ${p.price} kr`,
+      meta: `${p.tag} · ${formatPrice(p.price)}`,
       keywords: [p.name, p.tag, p.category, ...(p.keywords||[]), p.desc].join(' '),
       action: () => {
         closeAISpotlight();
@@ -2947,7 +3507,7 @@ function buildSpotlightIndex() {
     idx.push({
       type: 'plan', icon: '💎',
       name: pl.name,
-      meta: `${pl.price} kr`,
+      meta: formatPrice(pl.price),
       keywords: [pl.name, ...(pl.keywords||[])].join(' '),
       action: () => { closeAISpotlight(); document.querySelector(pl.href).scrollIntoView({ behavior: 'smooth' }); }
     });

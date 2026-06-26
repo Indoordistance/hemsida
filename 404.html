@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>404 — Sidan kunde inte hittas · Indoor Distance</title>
+  <meta name="description" content="Sidan du letar efter finns inte. Här är några vägar tillbaka.">
+  <meta name="robots" content="noindex,follow">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='75' font-size='80' font-family='Georgia'%3ED%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .e404-wrap{
+      min-height:100vh; display:flex; align-items:center; justify-content:center;
+      padding:80px 24px 60px; position:relative; z-index:2;
+    }
+    .e404-card{
+      max-width:540px; width:100%; text-align:center;
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:22px; padding:48px 36px;
+      box-shadow:0 30px 80px rgba(0,0,0,0.30);
+    }
+    .e404-eye{
+      font-size:11px; color:var(--accent); letter-spacing:0.20em;
+      text-transform:uppercase; font-weight:700; margin-bottom:14px;
+    }
+    .e404-num{
+      font-family:var(--serif); font-style:italic; font-weight:500;
+      font-size:96px; line-height:1; color:var(--accent);
+      letter-spacing:-0.04em; margin-bottom:8px;
+    }
+    .e404-title{
+      font-family:var(--serif); font-style:italic; font-weight:500;
+      font-size:30px; color:var(--text); margin-bottom:14px;
+      letter-spacing:-0.02em;
+    }
+    .e404-sub{
+      font-size:14px; color:var(--text-mute); line-height:1.65;
+      margin-bottom:28px;
+    }
+    .e404-actions{
+      display:flex; flex-direction:column; gap:10px;
+    }
+    .e404-actions a{
+      display:flex; align-items:center; gap:12px;
+      padding:14px 18px; border-radius:12px;
+      background:var(--surface-2); border:1px solid var(--border);
+      color:var(--text); text-decoration:none;
+      font-size:13px; transition: all .2s var(--ease);
+    }
+    .e404-actions a:hover{
+      border-color:rgba(220,208,188,0.40);
+      background:rgba(220,208,188,0.04);
+    }
+    .e404-actions a span:first-child{ font-size:20px }
+    .e404-actions a strong{ color:var(--text); display:block }
+    .e404-actions a small{ color:var(--text-mute); font-size:11px; display:block; margin-top:1px }
+    .e404-back{
+      display:inline-block; margin-top:24px;
+      color:var(--text-mute); font-size:12px; text-decoration:none;
+      letter-spacing:0.04em;
+    }
+    .e404-back:hover{ color:var(--accent) }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text)">
+    <div class="logo"><span class="logo-mark">D</span><span>Indoor Distance</span></div>
+  </a>
+</nav>
+
+<div class="e404-wrap">
+  <div class="e404-card">
+    <div class="e404-eye">Sida kunde inte hittas</div>
+    <div class="e404-num">404</div>
+    <h1 class="e404-title">Hmm, tomt här.</h1>
+    <p class="e404-sub">
+      Sidan du letade efter finns inte — kanske flyttad, borttagen eller bara fel länk. Här är några vägar tillbaka:
+    </p>
+
+    <div class="e404-actions">
+      <a href="index.html">
+        <span>🏠</span>
+        <div><strong>Startsidan</strong><small>Tillbaka till början</small></div>
+      </a>
+      <a href="index.html#priser">
+        <span>💎</span>
+        <div><strong>Priser &amp; planer</strong><small>Personlig · Klubb · Merch</small></div>
+      </a>
+      <a href="index.html#faq">
+        <span>❓</span>
+        <div><strong>Vanliga frågor</strong><small>Allt om appen och tjänsten</small></div>
+      </a>
+      <a href="index.html#kontakt">
+        <span>✉</span>
+        <div><strong>Kontakta oss</strong><small>Om du tror något är fel</small></div>
+      </a>
+    </div>
+
+    <a href="javascript:history.back()" class="e404-back">← Gå tillbaka</a>
+  </div>
+</div>
+
+</body>
+</html>

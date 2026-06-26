@@ -13,6 +13,7 @@
 
 <!-- Canonical -->
 <link rel="canonical" href="https://indoordistance.se/">
+<link rel="sitemap" type="application/xml" href="sitemap.xml">
 
 <!-- Alternate languages (for hreflang SEO) -->
 <link rel="alternate" hreflang="sv" href="https://indoordistance.se/?lang=sv">
@@ -255,6 +256,25 @@
         <button onclick="setLanguage('it')" data-flag="🇮🇹"><span>🇮🇹</span> Italiano</button>
         <button onclick="setLanguage('pl')" data-flag="🇵🇱"><span>🇵🇱</span> Polski</button>
         <button onclick="setLanguage('zh')" data-flag="🇨🇳"><span>🇨🇳</span> 中文</button>
+      </div>
+    </div>
+    <!-- Currency switcher -->
+    <div class="lang-switcher" id="currencySwitcher" style="margin-left:6px">
+      <button class="lang-btn" id="currencyBtn" onclick="toggleCurrencyMenu(event)" aria-label="Valuta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="margin-right:5px">
+          <circle cx="12" cy="12" r="9"/><path d="M14.5 9.5a3 3 0 0 0-2.5-1.5c-1.5 0-3 1-3 3 0 1.5 1 2 2.5 2.5s2.5 1 2.5 2.5-1.5 3-3 3a3 3 0 0 1-2.5-1.5M12 6v12"/>
+        </svg>
+        <span id="currencyPickerBadge">SEK</span>
+      </button>
+      <div class="lang-menu" id="currencyMenu">
+        <button onclick="setCurrencyAndClose('SEK')"><span>🇸🇪</span> SEK · Svenska kronor</button>
+        <button onclick="setCurrencyAndClose('NOK')"><span>🇳🇴</span> NOK · Norske kroner</button>
+        <button onclick="setCurrencyAndClose('DKK')"><span>🇩🇰</span> DKK · Danske kroner</button>
+        <button onclick="setCurrencyAndClose('EUR')"><span>🇪🇺</span> EUR · Euro</button>
+        <button onclick="setCurrencyAndClose('USD')"><span>🇺🇸</span> USD · US Dollar</button>
+        <button onclick="setCurrencyAndClose('GBP')"><span>🇬🇧</span> GBP · British Pound</button>
+        <button onclick="setCurrencyAndClose('CHF')"><span>🇨🇭</span> CHF · Schweizerfranc</button>
+        <button onclick="setCurrencyAndClose('PLN')"><span>🇵🇱</span> PLN · Polski złoty</button>
       </div>
     </div>
     <button class="auth-nav-btn" id="authNavBtn" onclick="handleAuthClick()" data-i18n="nav.login">Logga in</button>
@@ -609,9 +629,9 @@
         <p data-i18n="plan.ads.desc">Full funktionalitet, men med reklamavbrott. Perfekt för att testa.</p>
       </div>
       <div class="price-options">
-        <div class="price-opt"><span data-i18n="plan.month">1 månad</span><strong>100 kr</strong></div>
-        <div class="price-opt"><span data-i18n="plan.halfSeason">Halv säsong</span><strong>200 kr</strong></div>
-        <div class="price-opt featured"><span data-i18n-html="plan.fullSeason">Hel säsong <em>bäst värde</em></span><strong>350 kr</strong></div>
+        <div class="price-opt"><span data-i18n="plan.month">1 månad</span><strong data-plan-price="99">99 kr</strong></div>
+        <div class="price-opt"><span data-i18n="plan.halfSeason">Halv säsong</span><strong data-plan-price="199">199 kr</strong></div>
+        <div class="price-opt featured"><span data-i18n-html="plan.fullSeason">Hel säsong <em>bäst värde</em></span><strong data-plan-price="349">349 kr</strong></div>
       </div>
       <button class="btn-secondary" onclick="goToSignup()" data-i18n="plan.choose">Välj plan</button>
     </div>
@@ -624,9 +644,9 @@
         <p data-i18n="plan.personal.desc">Helt reklamfri upplevelse. Spara obegränsat med kast.</p>
       </div>
       <div class="price-options">
-        <div class="price-opt"><span data-i18n="plan.month">1 månad</span><strong>200 kr</strong></div>
-        <div class="price-opt"><span data-i18n="plan.halfSeason">Halv säsong</span><strong>350 kr</strong></div>
-        <div class="price-opt featured"><span data-i18n-html="plan.fullSeason">Hel säsong <em>bäst värde</em></span><strong>650 kr</strong></div>
+        <div class="price-opt"><span data-i18n="plan.month">1 månad</span><strong data-plan-price="199">199 kr</strong></div>
+        <div class="price-opt"><span data-i18n="plan.halfSeason">Halv säsong</span><strong data-plan-price="349">349 kr</strong></div>
+        <div class="price-opt featured"><span data-i18n-html="plan.fullSeason">Hel säsong <em>bäst värde</em></span><strong data-plan-price="649">649 kr</strong></div>
       </div>
       <button class="btn-primary" onclick="goToSignup()" data-i18n="plan.choose">Välj plan</button>
     </div>
@@ -638,13 +658,16 @@
         <p data-i18n="plan.clubAcc.desc">För klubbar och tränarteam. Inkluderar tränarverktyg och prestanda-analys.</p>
       </div>
       <div class="price-options">
-        <div class="price-opt"><span data-i18n="plan.month">1 månad</span><strong>1 000 kr</strong></div>
-        <div class="price-opt"><span data-i18n="plan.halfSeason">Halv säsong</span><strong>2 500 kr</strong></div>
-        <div class="price-opt featured"><span data-i18n-html="plan.fullSeason">Hel säsong <em>bäst värde</em></span><strong>4 500 kr</strong></div>
+        <div class="price-opt"><span data-i18n="plan.month">1 månad</span><strong data-plan-price="999">999 kr</strong></div>
+        <div class="price-opt"><span data-i18n="plan.halfSeason">Halv säsong</span><strong data-plan-price="2499">2 499 kr</strong></div>
+        <div class="price-opt featured"><span data-i18n-html="plan.fullSeason">Hel säsong <em>bäst värde</em></span><strong data-plan-price="4499">4 499 kr</strong></div>
       </div>
       <button class="btn-secondary" onclick="goToSignup()" data-i18n="plan.choose">Välj plan</button>
     </div>
   </div>
+  <p style="text-align:center;color:var(--text-mute);font-size:11px;margin-top:24px;letter-spacing:0.04em">
+    Visas i <strong id="currencyDisclaimerCode">SEK</strong> · byt valuta i menyn ovan. Internationella priser är ungefärliga (omvandling från SEK).
+  </p>
 
   <!-- BUTIK -->
   <div class="section-head" style="margin-top:120px">
@@ -1053,6 +1076,7 @@
           <button data-tab="orders" onclick="switchAcctTab('orders', this)">Beställningar</button>
           <button data-tab="profile" onclick="switchAcctTab('profile', this)">Profil</button>
           <button data-tab="subscription" onclick="switchAcctTab('subscription', this)">Prenumeration</button>
+          <button id="myRightsBtn" data-tab="rights" onclick="switchAcctTab('rights', this)">Mina rättigheter (GDPR)</button>
           <button onclick="webLogout()" style="color:var(--text-mute);margin-top:12px">Logga ut</button>
         </div>
       </aside>
@@ -1104,10 +1128,100 @@
           </div>
           <button class="btn-secondary" onclick="window.open('mailto:info.indoordistance@gmail.com?subject=Avsluta prenumeration', '_blank')" style="margin-top:20px">Avsluta prenumeration</button>
         </div>
+
+        <!-- GDPR-rättigheter -->
+        <div class="acct-tab" id="acctTab-rights" style="display:none">
+          <h3>Mina rättigheter <span style="font-size:11px;color:var(--text-mute);letter-spacing:0.08em">(GDPR)</span></h3>
+          <p class="sub">Enligt EU:s dataskyddsförordning har du följande rättigheter över dina personuppgifter. Du kan utöva dem direkt här.</p>
+
+          <!-- Dataexport -->
+          <div class="gdpr-card">
+            <div class="gdpr-icon">📦</div>
+            <div class="gdpr-body">
+              <h4>Ladda ner all min data</h4>
+              <p>Få en kopia av allt vi har om dig — profil, kast, beställningar, inställningar — som JSON-fil. Klar inom några sekunder.</p>
+              <button class="btn-secondary" onclick="gdprExportData()">Ladda ner mina data</button>
+            </div>
+          </div>
+
+          <!-- Cookie-inställningar -->
+          <div class="gdpr-card">
+            <div class="gdpr-icon">🍪</div>
+            <div class="gdpr-body">
+              <h4>Cookie-inställningar</h4>
+              <p>Ändra vilka cookies du tillåter. Du kan när som helst dra tillbaka eller utöka ditt samtycke.</p>
+              <button class="btn-secondary" onclick="openCookiePrefs()">Hantera cookies</button>
+            </div>
+          </div>
+
+          <!-- Rättelse via mail -->
+          <div class="gdpr-card">
+            <div class="gdpr-icon">✏️</div>
+            <div class="gdpr-body">
+              <h4>Rätta information</h4>
+              <p>Du kan ändra namn, e-post och övriga uppgifter under <strong>Profil</strong>. Behöver du hjälp eller vill rätta något annat — mejla oss.</p>
+              <button class="btn-secondary" onclick="window.open('mailto:info.indoordistance@gmail.com?subject=Rätta personuppgifter', '_blank')">Kontakta oss</button>
+            </div>
+          </div>
+
+          <!-- Klagomål -->
+          <div class="gdpr-card">
+            <div class="gdpr-icon">⚖️</div>
+            <div class="gdpr-body">
+              <h4>Lämna klagomål</h4>
+              <p>Anser du att vi hanterar dina personuppgifter felaktigt? Du har rätt att klaga till Integritetsskyddsmyndigheten (IMY).</p>
+              <button class="btn-secondary" onclick="window.open('https://www.imy.se/privatperson/klagomal/', '_blank')">Till IMY:s klagomålssida</button>
+            </div>
+          </div>
+
+          <!-- Radera konto — farligt -->
+          <div class="gdpr-card gdpr-danger">
+            <div class="gdpr-icon">🗑️</div>
+            <div class="gdpr-body">
+              <h4>Radera mitt konto</h4>
+              <p>Tar bort ditt konto och all personlig data inom 30 dagar. Köphistorik bevaras enligt Bokföringslag (7 år) men avidentifieras. <strong>Detta går inte att ångra.</strong></p>
+              <button class="btn-danger" onclick="gdprStartDelete()">Radera mitt konto</button>
+            </div>
+          </div>
+
+          <p style="font-size:11px;color:var(--text-mute);margin-top:24px;line-height:1.6">
+            Fullständig information finns i vår <a href="policy.html" style="color:var(--accent)">integritetspolicy</a>. Vid frågor: <a href="mailto:info.indoordistance@gmail.com" style="color:var(--accent)">info.indoordistance@gmail.com</a>. Vi svarar inom 30 dagar.
+          </p>
+        </div>
+
       </div>
     </div>
   </div>
 </section>
+
+<!-- ── GDPR Radera konto - bekräftelse-modal ── -->
+<div id="gdprDeleteModal" class="modal-backdrop" style="display:none" onclick="if(event.target===this)gdprCancelDelete()">
+  <div class="modal-content" style="max-width:480px">
+    <button class="modal-close" onclick="gdprCancelDelete()">×</button>
+    <div style="padding:32px 30px">
+      <div style="font-size:48px;text-align:center;margin-bottom:16px">⚠️</div>
+      <h2 style="font-family:var(--serif);font-style:italic;font-size:26px;text-align:center;margin-bottom:10px;color:var(--text)">Radera ditt konto?</h2>
+      <p style="font-size:13px;color:var(--text-mute);line-height:1.65;text-align:center;margin-bottom:20px">
+        Detta tar bort all personlig data inom 30 dagar och kan <strong style="color:#E27474">inte ångras</strong>. Köphistorik bevaras i 7 år enligt Bokföringslag, men avidentifieras.
+      </p>
+
+      <div style="background:rgba(226,116,116,0.08);border:1px solid rgba(226,116,116,0.30);border-radius:10px;padding:14px;margin-bottom:18px;font-size:12px;line-height:1.55;color:#E27474">
+        <strong>Vad raderas direkt:</strong> profil, träningsdata, mål, inställningar, sparade kast, videor.<br><br>
+        <strong>Vad sparas (avidentifierat):</strong> orderhistorik (bokföringskrav), aggregerad analysdata.
+      </div>
+
+      <label style="display:block;font-size:12px;color:var(--text);margin-bottom:8px">Skriv <strong style="color:#E27474">RADERA</strong> för att bekräfta:</label>
+      <input id="gdprConfirmText" type="text" placeholder="RADERA"
+        style="width:100%;background:var(--surface-2);border:1.5px solid var(--border-2);border-radius:10px;padding:12px 14px;color:var(--text);font-size:14px;font-family:inherit;letter-spacing:0.06em;margin-bottom:18px"
+        oninput="document.getElementById('gdprConfirmBtn').disabled = this.value.trim() !== 'RADERA'">
+
+      <div style="display:flex;gap:10px">
+        <button class="btn-secondary" style="flex:1" onclick="gdprCancelDelete()">Avbryt</button>
+        <button class="btn-danger" id="gdprConfirmBtn" disabled style="flex:1;opacity:.5" onclick="gdprConfirmDelete()">Radera konto</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- ── NEWSLETTER ── -->
 <section id="newsletter">
@@ -1230,10 +1344,19 @@
         <a href="https://tiktok.com/@indoor_distance" target="_blank">TikTok</a>
         <a href="mailto:info.indoordistance@gmail.com" data-i18n="contact.email">E-post</a>
       </div>
+      <div>
+        <h4>Juridiskt</h4>
+        <a href="policy.html">Integritetspolicy</a>
+        <a href="villkor.html">Användarvillkor</a>
+        <a href="#" onclick="openCookiePrefs();return false;">Cookie-inställningar</a>
+        <a href="#konto" onclick="setTimeout(()=>document.getElementById('myRightsBtn')&&document.getElementById('myRightsBtn').click(),400)">Mina rättigheter (GDPR)</a>
+      </div>
     </div>
   </div>
   <div class="footer-bottom">
     © 2026 Indoor Distance · info.indoordistance@gmail.com ·
+    <a href="policy.html" style="color:var(--text-mute)">Integritet</a> ·
+    <a href="villkor.html" style="color:var(--text-mute)">Villkor</a> ·
     <a href="admin.html" style="color:var(--text-mute);font-size:11px;opacity:0.5">Admin</a>
   </div>
 </footer>
@@ -1391,7 +1514,7 @@
 
       <label style="display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--text-mute);line-height:1.5;cursor:pointer;margin-top:14px">
         <input type="checkbox" id="coTerms" required>
-        <span>Jag godkänner villkoren och har läst integritetspolicyn.</span>
+        <span>Jag godkänner <a href="villkor.html" target="_blank" style="color:var(--accent)">användarvillkoren</a> och har läst <a href="policy.html" target="_blank" style="color:var(--accent)">integritetspolicyn</a>.</span>
       </label>
       <div style="display:flex;gap:10px;margin-top:14px">
         <button class="btn-secondary" onclick="coBack(2)">← Tillbaka</button>
@@ -1546,6 +1669,85 @@
     <div class="email-preview-foot">
       <button class="btn-secondary" onclick="closeEmailPreview()" data-i18n="email.close">Stäng</button>
       <button class="btn-primary" onclick="openMailto()" data-i18n="email.openMail">Öppna i mailprogrammet</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     GDPR COOKIE CONSENT — banner + preferences modal
+     ═══════════════════════════════════════════════════════════ -->
+<div id="cookieBanner" class="cookie-banner" style="display:none">
+  <div class="cookie-banner-inner">
+    <div class="cookie-banner-content">
+      <div class="cookie-banner-icon">🍪</div>
+      <div class="cookie-banner-text">
+        <strong>Vi värdesätter din integritet</strong>
+        <span>Vi använder cookies för att tillhandahålla tjänsten och förbättra din upplevelse. Du väljer själv vad du godkänner — och du kan ändra dig när som helst.</span>
+      </div>
+    </div>
+    <div class="cookie-banner-actions">
+      <button class="cookie-btn-text" onclick="openCookiePrefs()">Anpassa</button>
+      <button class="cookie-btn-ghost" onclick="acceptCookies('necessary')">Endast nödvändiga</button>
+      <button class="cookie-btn-primary" onclick="acceptCookies('all')">Acceptera alla</button>
+    </div>
+    <div class="cookie-banner-links">
+      <a href="policy.html">Integritetspolicy</a>
+      <span>·</span>
+      <a href="villkor.html">Användarvillkor</a>
+    </div>
+  </div>
+</div>
+
+<div id="cookiePrefsModal" class="cookie-prefs-modal" style="display:none">
+  <div class="cookie-prefs-card">
+    <button class="cookie-prefs-close" onclick="closeCookiePrefs()" aria-label="Stäng">×</button>
+    <div class="cookie-prefs-eye">Cookie-inställningar</div>
+    <h2 class="cookie-prefs-title">Anpassa dina cookies</h2>
+    <p class="cookie-prefs-sub">Välj vilka kategorier av cookies du tillåter. Du kan ändra valet när som helst via "Cookie-inställningar" i sidfoten.</p>
+
+    <div class="cookie-cat">
+      <div class="cookie-cat-head">
+        <div>
+          <div class="cookie-cat-name">Nödvändiga</div>
+          <div class="cookie-cat-desc">Krävs för att tjänsten ska fungera (inloggning, varukorg, språkval). Kan inte stängas av.</div>
+        </div>
+        <div class="cookie-toggle cookie-toggle-locked">PÅ</div>
+      </div>
+    </div>
+
+    <div class="cookie-cat">
+      <div class="cookie-cat-head">
+        <div>
+          <div class="cookie-cat-name">Analys</div>
+          <div class="cookie-cat-desc">Anonym statistik om hur sidan används så vi kan förbättra den. Vi mäter inte enskilda personer.</div>
+        </div>
+        <label class="cookie-toggle">
+          <input type="checkbox" id="cookieToggleAnalytics">
+          <span class="cookie-toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="cookie-cat">
+      <div class="cookie-cat-head">
+        <div>
+          <div class="cookie-cat-name">Marknadsföring</div>
+          <div class="cookie-cat-desc">Används idag inte aktivt. Aktiveras endast om du samtycker till framtida personaliserad marknadsföring.</div>
+        </div>
+        <label class="cookie-toggle">
+          <input type="checkbox" id="cookieToggleMarketing">
+          <span class="cookie-toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="cookie-prefs-actions">
+      <button class="cookie-btn-ghost" onclick="acceptCookies('necessary'); closeCookiePrefs();">Endast nödvändiga</button>
+      <button class="cookie-btn-primary" onclick="saveCookiePrefs()">Spara mitt val</button>
+    </div>
+
+    <div class="cookie-prefs-links">
+      Läs mer i vår <a href="policy.html">integritetspolicy</a> · <a href="villkor.html">användarvillkor</a>
     </div>
   </div>
 </div>
