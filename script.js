@@ -525,9 +525,9 @@ const PRODUCTS = [
     price: 179,
     category: 'mugg',
     images: [
-      'bilder/mugg (1).png',
-      'bilder/mugg (2).png',
-      'bilder/mugg (3).png'
+      'bilder/mugg-1.png',
+      'bilder/mugg-2.png',
+      'bilder/mugg-3.png'
     ],
     desc: 'Keramikmugg 325 ml med Indoor Distance-logga. Färg: vit. Tål diskmaskin och mikrovågsugn.',
     color: 'Vit',
@@ -787,7 +787,7 @@ function renderProductCard(p, i) {
         <div class="gallery" data-gid="${p.id}">
           <div class="gallery-track" id="track-${p.id}">
             ${p.images.map((src,idx) => `
-              <div class="gallery-slide"><img src="${src}" alt="${p.name} bild ${idx+1}" loading="lazy"></div>
+              <div class="gallery-slide"><img src="${src}" alt="${p.name} bild ${idx+1}" loading="lazy" onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 400%22%3E%3Crect width=%22400%22 height=%22400%22 fill=%22%23131D34%22/%3E%3Ctext x=%22200%22 y=%22200%22 font-family=%22Georgia%22 font-size=%22120%22 font-style=%22italic%22 fill=%22%23DCD0BC%22 text-anchor=%22middle%22 dominant-baseline=%22central%22%3ED%3C/text%3E%3Ctext x=%22200%22 y=%22320%22 font-family=%22system-ui%22 font-size=%2216%22 fill=%22%238B95A1%22 text-anchor=%22middle%22 letter-spacing=%224%22%3EBILD LADDAS%3C/text%3E%3C/svg%3E';"></div>
             `).join('')}
           </div>
           ${hasGallery ? `
@@ -829,7 +829,7 @@ function renderPreviewCard(p, i) {
   return `
     <article class="product-card preview-card reveal-up" data-delay="${(i % 4) * 60}" data-category="${p.category}" data-pid="${p.id}">
       <div class="product-img" onclick="openProductModal('${p.id}')">
-        <img src="${p.images[0]}" alt="${p.name}" loading="lazy">
+        <img src="${p.images[0]}" alt="${p.name}" loading="lazy" onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 400%22%3E%3Crect width=%22400%22 height=%22400%22 fill=%22%23131D34%22/%3E%3Ctext x=%22200%22 y=%22200%22 font-family=%22Georgia%22 font-size=%22120%22 font-style=%22italic%22 fill=%22%23DCD0BC%22 text-anchor=%22middle%22 dominant-baseline=%22central%22%3ED%3C/text%3E%3Ctext x=%22200%22 y=%22320%22 font-family=%22system-ui%22 font-size=%2216%22 fill=%22%238B95A1%22 text-anchor=%22middle%22 letter-spacing=%224%22%3EBILD LADDAS%3C/text%3E%3C/svg%3E';">
       </div>
       <div class="product-info">
         <span class="product-tag">${p.tag}</span>
@@ -1408,17 +1408,31 @@ async function webSignup() {
   } catch(err) { showToast('Nätverksfel'); }
 }
 
-function webGoogleSignIn() {
-  // Build redirect URL — clean, no double-hash
+async function webGoogleSignIn() {
   const cleanUrl = window.location.origin + window.location.pathname;
   const redirectTo = cleanUrl + '#konto';
-  // Check if we're running locally (file://) — won't work
   if (window.location.protocol === 'file:') {
-    showToast('❌ Google-inloggning kräver att sidan körs på en server (inte file://)');
+    showToast('❌ Google-inloggning kräver https:// — deploy till GitHub Pages först');
     return;
   }
+  // Pre-check: är Google-provider ens aktiverad i Supabase?
+  try {
+    const pingRes = await fetch(SUPABASE_URL + '/auth/v1/settings', {
+      headers: { apikey: SUPABASE_KEY }
+    });
+    if (!pingRes.ok) {
+      showToast('⚠ Supabase svarar inte (status ' + pingRes.status + ')');
+      return;
+    }
+    const settings = await pingRes.json();
+    const externalProviders = settings.external || {};
+    if (!externalProviders.google) {
+      showToast('⚠ Google-provider inte aktiverad i Supabase Dashboard');
+      console.warn('Enable Google under Auth → Providers in Supabase.');
+      return;
+    }
+  } catch(e) { console.warn('OAuth pre-check failed:', e); }
   showToast('🔐 Öppnar Google-inloggning...');
-  // Use Supabase OAuth endpoint
   const authUrl = SUPABASE_URL + '/auth/v1/authorize?' + new URLSearchParams({
     provider: 'google',
     redirect_to: redirectTo
