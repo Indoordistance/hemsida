@@ -1974,12 +1974,25 @@ async function sendContact(e) {
   e.preventDefault();
   const name = document.getElementById('contactName').value.trim();
   const email = document.getElementById('contactEmail').value.trim();
+  const topicEl = document.getElementById('contactTopic');
+  const topic = topicEl ? topicEl.value : '';
   const msg = document.getElementById('contactMsg').value.trim();
-  if (!name || !email || !msg) { showToast('Fyll i alla fält'); return; }
+  if (!name || !email || !topic || !msg) { showToast('Fyll i alla fält (inkl. ärende)'); return; }
+
+  const topicLabels = {
+    support:      '🛟 Support',
+    prenumeration:'💳 Prenumeration',
+    klubb:        '🏆 Klubb-samarbete',
+    feedback:     '💡 Feedback',
+    partnerskap:  '🤝 Partnerskap',
+    skada:        '⚠ Rapportera fel',
+    ovrigt:       '💬 Övrigt'
+  };
+  const topicLabel = topicLabels[topic] || topic;
 
   // Save to local "outbox" so we don't lose it
   const outbox = JSON.parse(localStorage.getItem('id_contact_outbox') || '[]');
-  outbox.push({ name, email, msg, ts: Date.now() });
+  outbox.push({ name, email, topic, msg, ts: Date.now() });
   localStorage.setItem('id_contact_outbox', JSON.stringify(outbox));
 
   // Disable submit button during send
@@ -1995,9 +2008,10 @@ async function sendContact(e) {
       body: JSON.stringify({
         name,
         email,
+        topic: topicLabel,
         message: msg,
         _replyto: email,
-        _subject: `Kontaktformulär från ${name}`,
+        _subject: `${topicLabel} — från ${name}`,
         page: 'Indoor Distance hemsida'
       })
     });

@@ -1307,6 +1307,16 @@
     <form class="contact-form reveal-up" data-delay="150" onsubmit="sendContact(event)">
       <input type="text" id="contactName" placeholder="Ditt namn" required data-i18n-attr="placeholder:contact.name">
       <input type="email" id="contactEmail" placeholder="Din e-post" required data-i18n-attr="placeholder:contact.emailPh">
+      <select id="contactTopic" required>
+        <option value="" disabled selected>Vad gäller det? *</option>
+        <option value="support">🛟 Support · problem med appen eller kontot</option>
+        <option value="prenumeration">💳 Prenumeration · fakturering, uppgradera, säga upp</option>
+        <option value="klubb">🏆 Klubb-samarbete · min klubb vill använda Indoor Distance</option>
+        <option value="feedback">💡 Feedback · funktionsförslag, förbättringar</option>
+        <option value="partnerskap">🤝 Partnerskap · press, sponsring, samarbete</option>
+        <option value="skada">⚠ Rapportera fel · buggar eller säkerhetsproblem</option>
+        <option value="ovrigt">💬 Övrigt</option>
+      </select>
       <textarea id="contactMsg" placeholder="Skriv ditt meddelande..." rows="5" required data-i18n-attr="placeholder:contact.msg"></textarea>
       <button type="submit" class="btn-primary" data-i18n="contact.send">Skicka meddelande</button>
     </form>
