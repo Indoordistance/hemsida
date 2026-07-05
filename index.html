@@ -1076,6 +1076,7 @@
           <button data-tab="orders" onclick="switchAcctTab('orders', this)">Beställningar</button>
           <button data-tab="profile" onclick="switchAcctTab('profile', this)">Profil</button>
           <button data-tab="subscription" onclick="switchAcctTab('subscription', this)">Prenumeration</button>
+          <button data-tab="security" onclick="switchAcctTab('security', this)">🔒 Säkerhet</button>
           <button id="myRightsBtn" data-tab="rights" onclick="switchAcctTab('rights', this)">Mina rättigheter (GDPR)</button>
           <button onclick="webLogout()" style="color:var(--text-mute);margin-top:12px">Logga ut</button>
         </div>
@@ -1130,6 +1131,41 @@
         </div>
 
         <!-- GDPR-rättigheter -->
+        <!-- Säkerhet — byt lösenord + glömt -->
+        <div class="acct-tab" id="acctTab-security" style="display:none">
+          <h3>Säkerhet</h3>
+          <p class="sub">Byt lösenord direkt eller skicka reset-mail. Alla mail kommer från info.indoordistance@gmail.com.</p>
+
+          <!-- Alt 1: Direkt-ändring -->
+          <div class="gdpr-card">
+            <div class="gdpr-icon">🔒</div>
+            <div class="gdpr-body">
+              <h4>Ändra lösenord direkt</h4>
+              <p>Om du är inloggad och kommer ihåg ditt nuvarande lösenord.</p>
+              <label style="font-size:12px;color:var(--text-mute);display:block;margin-bottom:4px;margin-top:8px">Nytt lösenord (min 6 tecken)</label>
+              <input type="password" id="webNewPass1" placeholder="Nytt lösenord" style="width:100%;background:var(--surface-2);border:1.5px solid var(--border-2);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:inherit;margin-bottom:8px">
+              <label style="font-size:12px;color:var(--text-mute);display:block;margin-bottom:4px">Bekräfta</label>
+              <input type="password" id="webNewPass2" placeholder="Skriv igen" style="width:100%;background:var(--surface-2);border:1.5px solid var(--border-2);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:inherit;margin-bottom:12px">
+              <button class="btn-primary" onclick="webChangePassword()" style="width:100%">Ändra lösenord</button>
+            </div>
+          </div>
+
+          <!-- Alt 2: Glömt lösenord -->
+          <div class="gdpr-card">
+            <div class="gdpr-icon">📧</div>
+            <div class="gdpr-body">
+              <h4>Glömt lösenord — skicka reset-mail</h4>
+              <p>Vi skickar en säker länk till din registrerade e-post. Klicka på länken → sätt nytt lösenord.</p>
+              <button class="btn-secondary" onclick="webResetPassword()" style="width:100%">Skicka reset-mail</button>
+            </div>
+          </div>
+
+          <p style="font-size:11px;color:var(--text-mute);margin-top:16px;line-height:1.6">
+            💡 <strong>Tips:</strong> Använd minst 8 tecken, blanda stora + små bokstäver + siffror.
+            Vi lagrar aldrig ditt lösenord i klartext — bara en irreversibel hash.
+          </p>
+        </div>
+
         <div class="acct-tab" id="acctTab-rights" style="display:none">
           <h3>Mina rättigheter <span style="font-size:11px;color:var(--text-mute);letter-spacing:0.08em">(GDPR)</span></h3>
           <p class="sub">Enligt EU:s dataskyddsförordning har du följande rättigheter över dina personuppgifter. Du kan utöva dem direkt här.</p>

@@ -1440,6 +1440,93 @@ async function webGoogleSignIn() {
   window.location.href = authUrl;
 }
 
+// Ändra lösenord direkt (kräver inloggad session)
+async function webChangePassword() {
+  const p1 = document.getElementById('webNewPass1');
+  const p2 = document.getElementById('webNewPass2');
+  if (!p1 || !p2) return;
+  const v1 = p1.value, v2 = p2.value;
+  if (v1.length < 6) { showToast('Minst 6 tecken'); return; }
+  if (v1 !== v2) { showToast('Lösenorden matchar inte'); return; }
+
+  const token = getToken();
+  if (!token) { showToast('Inte inloggad — logga in igen först'); return; }
+
+  try {
+    const res = await fetch(SUPABASE_URL + '/auth/v1/user', {
+      method: 'PUT',
+      headers: { 'Content-Type':'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ password: v1 })
+    });
+    if (res.ok) {
+      showToast('✓ Lösenord uppdaterat');
+      p1.value = ''; p2.value = '';
+    } else {
+      const txt = await res.text();
+      showToast('⚠ ' + res.status + ': ' + txt.slice(0,80));
+    }
+  } catch(err) {
+    showToast('⚠ Nätverksfel');
+  }
+}
+
+// Kolla vid load om URL har recovery-token, visa direktvy
+async function webHandlePasswordRecovery() {
+  if (!location.hash || location.hash.indexOf('type=recovery') === -1) return;
+  const params = new URLSearchParams(location.hash.substring(1));
+  const token = params.get('access_token');
+  if (!token) return;
+
+  // Rensa hash
+  try { history.replaceState({}, document.title, location.pathname); } catch(e){}
+
+  // Visa modal för nytt lösenord
+  const modal = document.createElement('div');
+  modal.className = 'modal-backdrop';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(8,14,26,0.85);backdrop-filter:blur(14px);z-index:10001;display:flex;align-items:center;justify-content:center;padding:20px';
+  modal.innerHTML = `<div style="background:linear-gradient(180deg,#1A2540,#131D34);border:1px solid rgba(220,208,188,0.30);border-radius:20px;padding:28px;max-width:420px;width:100%;color:var(--text)">
+    <div style="font-size:44px;text-align:center;margin-bottom:12px">🔓</div>
+    <h2 style="font-family:var(--serif);font-style:italic;font-size:24px;text-align:center;margin-bottom:8px">Sätt nytt lösenord</h2>
+    <p style="font-size:13px;color:var(--text-mute);text-align:center;margin-bottom:20px;line-height:1.55">Du har klickat på reset-länken från Indoor Distance. Välj ett nytt lösenord.</p>
+    <input type="password" id="webRec1" placeholder="Nytt lösenord (min 6)" style="width:100%;background:var(--surface-2);border:1.5px solid var(--border-2);border-radius:10px;padding:12px 14px;color:var(--text);font-size:14px;font-family:inherit;margin-bottom:8px">
+    <input type="password" id="webRec2" placeholder="Bekräfta" style="width:100%;background:var(--surface-2);border:1.5px solid var(--border-2);border-radius:10px;padding:12px 14px;color:var(--text);font-size:14px;font-family:inherit;margin-bottom:16px">
+    <button class="btn-primary" onclick="webCompletePasswordRecovery('${token}')" style="width:100%">SPARA NYTT LÖSENORD</button>
+  </div>`;
+  document.body.appendChild(modal);
+}
+
+async function webCompletePasswordRecovery(token) {
+  const p1 = document.getElementById('webRec1');
+  const p2 = document.getElementById('webRec2');
+  if (!p1 || !p2) return;
+  const v1 = p1.value, v2 = p2.value;
+  if (v1.length < 6) { showToast('Minst 6 tecken'); return; }
+  if (v1 !== v2) { showToast('Lösenorden matchar inte'); return; }
+
+  try {
+    const res = await fetch(SUPABASE_URL + '/auth/v1/user', {
+      method: 'PUT',
+      headers: { 'Content-Type':'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ password: v1 })
+    });
+    if (res.ok) {
+      showToast('✓ Lösenord uppdaterat — logga in nu');
+      const m = document.querySelector('.modal-backdrop');
+      if (m) m.remove();
+      document.getElementById('konto')?.scrollIntoView({ behavior:'smooth' });
+    } else {
+      const txt = await res.text();
+      showToast('⚠ ' + res.status + ': ' + txt.slice(0,80));
+    }
+  } catch(err) {
+    showToast('⚠ Nätverksfel');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(webHandlePasswordRecovery, 400);
+});
+
 async function webResetPassword() {
   const email = document.getElementById('loginEmail').value.trim();
   if (!email) { showToast('Skriv din e-post först'); return; }
