@@ -1585,115 +1585,70 @@
 
 <!-- ── SIZE GUIDE MODAL (smart wizard) ── -->
 <div class="modal-backdrop" id="sizeGuideModal" onclick="if(event.target===this)closeSizeGuide()">
-  <div class="modal-content size-guide-modal">
-    <button class="modal-close" onclick="closeSizeGuide()" aria-label="Stäng">×</button>
-    <div class="size-guide-head">
-      <span class="section-eyebrow">Storlekshjälp</span>
-      <h3>Hitta din perfekta storlek</h3>
-      <p>Svara på några snabba frågor så rekommenderar vi en storlek som passar dig.</p>
+  <div class="modal-content size-guide-modal" style="max-width:460px;padding:0;overflow:hidden">
+    <style>
+      /* Hitta din storlek — wizard (förlaga: stegvis flöde med illustrationer) */
+      .sgw-top{display:flex;align-items:center;gap:14px;padding:18px 18px 6px}
+      .sgw-progress{flex:1;height:4px;background:#E5E7EB;border-radius:2px;overflow:hidden}
+      .sgw-progress>div{height:100%;background:#111827;border-radius:2px;transition:width .3s ease}
+      .sgw-close{width:38px;height:38px;border-radius:50%;border:none;background:#F3F4F6;font-size:16px;cursor:pointer;flex-shrink:0}
+      .sgw-body{padding:8px 24px 24px;min-height:430px;display:flex;flex-direction:column}
+      .sgw-title{font-size:24px;font-weight:700;text-align:center;margin:10px 0 6px;letter-spacing:-0.01em}
+      .sgw-sub{font-size:14px;color:#6B7280;text-align:center;line-height:1.5;margin-bottom:18px}
+      .sgw-radios{display:flex;justify-content:space-between;gap:8px;margin:14px 6px 4px}
+      .sgw-radio{flex:1;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:9px;padding:6px}
+      .sgw-radio .dot{width:22px;height:22px;border-radius:50%;border:2px solid #C7CBD1;background:#fff;transition:all .15s}
+      .sgw-radio.active .dot{border-color:#1D4ED8;background:#1D4ED8;box-shadow:inset 0 0 0 4px #fff}
+      .sgw-radio span{font-size:15px;color:#374151}
+      .sgw-radio.active span{font-weight:700;color:#111827}
+      .sgw-btnrow{display:flex;gap:10px;margin-top:auto;padding-top:16px}
+      .sgw-btn-sec{flex:1;background:#fff;border:1.5px solid #D1D5DB;border-radius:12px;padding:14px;font-size:15px;font-weight:600;cursor:pointer;color:#111827}
+      .sgw-btn-pri{flex:1.3;background:#111827;color:#fff;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;cursor:pointer}
+      .sgw-btn-pri:disabled{opacity:0.4;cursor:not-allowed}
+      .sgw-field label{display:block;font-size:15px;font-weight:700;margin:12px 0 6px;color:#111827}
+      .sgw-input{width:100%;border:1.5px solid #D1D5DB;border-radius:12px;padding:14px;font-size:16px;font-family:inherit}
+      .sgw-input:focus{outline:none;border-color:#111827}
+      .sgw-cats{display:flex;gap:8px;margin-top:6px}
+      .sgw-cat{flex:1;border:1.5px solid #D1D5DB;background:#fff;border-radius:12px;padding:11px 6px;font-size:13px;font-weight:600;cursor:pointer;color:#374151}
+      .sgw-cat.active{border-color:#111827;background:#111827;color:#fff}
+      .sgw-slider{width:100%;accent-color:#111827;margin:10px 0 4px}
+      .sgw-slider-lbls{display:flex;justify-content:space-between;font-size:14px;color:#6B7280}
+      .sgw-slider-lbls .mid{font-weight:600;color:#111827}
+      .sgw-info{background:#F3F4F6;border-radius:12px;padding:13px 15px;font-size:13px;color:#374151;text-align:center;line-height:1.5;margin-top:16px}
+      .sgw-scale{position:relative;margin:22px 4px 6px}
+      .sgw-scale-bar{display:flex;height:7px;border-radius:4px;overflow:hidden;background:#E5E7EB}
+      .sgw-scale-bar>div{flex:1}
+      .sgw-scale-bar>div.on{background:#93B8F4}
+      .sgw-scale-lbls{display:flex;margin-top:9px}
+      .sgw-scale-lbls>div{flex:1;text-align:center;font-size:13px;color:#6B7280;line-height:1.4}
+      .sgw-scale-lbls>div.on{font-weight:700;color:#111827}
+      .sgw-marker{position:absolute;top:-11px;font-size:12px;transform:translateX(-50%);transition:left .3s}
+      .sgw-bigsize{font-size:52px;font-weight:800;text-align:center;letter-spacing:-0.02em;margin:8px 0 2px;color:#111827}
+      .sgw-fb{display:flex;justify-content:center;gap:10px;margin-top:14px;align-items:center}
+      .sgw-fb button{border:1.5px solid #D1D5DB;background:#fff;border-radius:999px;cursor:pointer;font-size:15px}
+      .sgw-fb .thumb{width:44px;height:44px}
+      .sgw-fb .tbl{padding:11px 20px;font-weight:600;font-size:14px;color:#111827}
+      .sgw-illu{display:flex;justify-content:center;margin:6px 0 2px}
+      .sgw-reset{text-align:center;font-size:13px;color:#6B7280;text-decoration:underline;cursor:pointer;margin-top:12px}
+      .sg-table-wrap-new{padding:0 4px;max-height:300px;overflow-y:auto;margin-top:8px}
+    </style>
+    <div class="sgw-top">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111827" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>
+      <div class="sgw-progress"><div id="sgwProgressFill" style="width:16%"></div></div>
+      <button class="sgw-close" onclick="closeSizeGuide()" aria-label="Stäng">✕</button>
     </div>
-
-    <!-- Step 1: Height -->
-    <div class="sg-step">
-      <div class="sg-step-num">1</div>
-      <div class="sg-step-content">
-        <label class="sg-label">Hur lång är du?</label>
-        <div class="sg-height-row">
-          <input type="number" class="sg-height-input" id="sgHeight" placeholder="cm" min="80" max="220" inputmode="numeric" oninput="updateSizeRec()">
-          <span class="sg-height-unit">cm</span>
-        </div>
-        <div class="sg-hint" id="sgHeightHint">T.ex. 175 cm</div>
-      </div>
-    </div>
-
-    <!-- Step 2: Shoulders -->
-    <div class="sg-step">
-      <div class="sg-step-num">2</div>
-      <div class="sg-step-content">
-        <label class="sg-label">Hur breda axlar har du?</label>
-        <div class="sg-options" id="sgShoulders">
-          <button class="sg-option" data-value="narrow" onclick="selectSgOption('shoulders','narrow',this)">
-            <svg viewBox="0 0 80 100" class="sg-icon"><circle cx="40" cy="22" r="10" fill="currentColor" opacity="0.4"/><path d="M30 38 Q40 35 50 38 L52 80 L28 80 Z" fill="currentColor" opacity="0.4"/></svg>
-            <span>Smala</span>
-          </button>
-          <button class="sg-option" data-value="normal" onclick="selectSgOption('shoulders','normal',this)">
-            <svg viewBox="0 0 80 100" class="sg-icon"><circle cx="40" cy="22" r="10" fill="currentColor" opacity="0.4"/><path d="M22 38 Q40 35 58 38 L56 80 L24 80 Z" fill="currentColor" opacity="0.4"/></svg>
-            <span>Normala</span>
-          </button>
-          <button class="sg-option" data-value="broad" onclick="selectSgOption('shoulders','broad',this)">
-            <svg viewBox="0 0 80 100" class="sg-icon"><circle cx="40" cy="22" r="10" fill="currentColor" opacity="0.4"/><path d="M14 38 Q40 35 66 38 L62 80 L18 80 Z" fill="currentColor" opacity="0.4"/></svg>
-            <span>Breda</span>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Step 3: Waist -->
-    <div class="sg-step">
-      <div class="sg-step-num">3</div>
-      <div class="sg-step-content">
-        <label class="sg-label">Hur är din midja?</label>
-        <div class="sg-options" id="sgWaist">
-          <button class="sg-option" data-value="narrow" onclick="selectSgOption('waist','narrow',this)">
-            <svg viewBox="0 0 80 100" class="sg-icon"><ellipse cx="40" cy="50" rx="14" ry="32" fill="currentColor" opacity="0.4"/></svg>
-            <span>Smal</span>
-          </button>
-          <button class="sg-option" data-value="normal" onclick="selectSgOption('waist','normal',this)">
-            <svg viewBox="0 0 80 100" class="sg-icon"><ellipse cx="40" cy="50" rx="20" ry="32" fill="currentColor" opacity="0.4"/></svg>
-            <span>Normal</span>
-          </button>
-          <button class="sg-option" data-value="wide" onclick="selectSgOption('waist','wide',this)">
-            <svg viewBox="0 0 80 100" class="sg-icon"><ellipse cx="40" cy="50" rx="26" ry="32" fill="currentColor" opacity="0.4"/></svg>
-            <span>Rund</span>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Step 4: Fit -->
-    <div class="sg-step">
-      <div class="sg-step-num">4</div>
-      <div class="sg-step-content">
-        <label class="sg-label">Hur vill du att tröjan ska sitta?</label>
-        <div class="sg-options" id="sgFit">
-          <button class="sg-option" data-value="tight" onclick="selectSgOption('fit','tight',this)">
-            <div class="sg-emoji">👕</div>
-            <span><strong>Tajt</strong></span>
-            <small>Slim fit</small>
-          </button>
-          <button class="sg-option" data-value="normal" onclick="selectSgOption('fit','normal',this)">
-            <div class="sg-emoji">👕</div>
-            <span><strong>Normal</strong></span>
-            <small>Lagom</small>
-          </button>
-          <button class="sg-option" data-value="loose" onclick="selectSgOption('fit','loose',this)">
-            <div class="sg-emoji">👕</div>
-            <span><strong>Lös</strong></span>
-            <small>Oversized</small>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Recommendation -->
-    <div class="sg-result" id="sgResult" style="display:none">
-      <div class="sg-result-lbl">VI REKOMMENDERAR</div>
-      <div class="sg-result-size" id="sgResultSize">M</div>
-      <div class="sg-result-cat" id="sgResultCat"></div>
-      <div class="sg-result-reason" id="sgResultReason"></div>
-      <div class="sg-result-actions">
-        <button class="btn-secondary" onclick="toggleSgTable()">Visa hela storlekstabellen</button>
-      </div>
-    </div>
-
-    <!-- Detailed table (collapsed by default) -->
-    <details class="sg-table-details" id="sgTableDetails">
-      <summary>Detaljerade mått (cm)</summary>
+    <div class="sgw-body" id="sgwStage"><!-- renderas av renderSgStep() --></div>
+    <!-- Storlekstabellen (nås via Storlekstabell-knapparna) -->
+    <div id="sgwTableView" style="display:none;padding:0 24px 24px">
+      <div class="sgw-title" style="font-size:20px">Storlekstabell</div>
       <div class="size-guide-tabs" id="sizeGuideTabs"></div>
-      <div class="size-guide-table-wrap">
+      <div class="size-guide-table-wrap sg-table-wrap-new">
         <table class="size-guide-table" id="sizeGuideTable"></table>
       </div>
-    </details>
+      <div class="sgw-btnrow">
+        <button class="sgw-btn-pri" style="flex:1" onclick="sgwHideTable()">← Tillbaka till guiden</button>
+      </div>
+    </div>
   </div>
 </div>
 

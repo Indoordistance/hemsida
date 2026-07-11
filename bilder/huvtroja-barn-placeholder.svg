@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <linearGradient id="fabric3" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="60%" stop-color="#F0F0F2"/>
+      <stop offset="100%" stop-color="#D4D4D8"/>
+    </linearGradient>
+  </defs>
+  <!-- Compact baby/kid hoodie -->
+  <path d="M140 145 L110 162 L96 195 L106 248 L130 248 L130 340 L270 340 L270 248 L294 248 L304 195 L290 162 L260 145 L240 138 L200 130 L160 138 Z"
+        fill="url(#fabric3)" stroke="#B8B8BC" stroke-width="1.5"/>
+  <!-- Hood -->
+  <path d="M160 138 Q200 85 240 138 L240 154 Q200 122 160 154 Z"
+        fill="url(#fabric3)" stroke="#B8B8BC" stroke-width="1.5"/>
+  <ellipse cx="200" cy="142" rx="38" ry="12" fill="rgba(0,0,0,0.12)"/>
+  <!-- No drawstrings on baby hoodie (safety) -->
+  <!-- Pocket -->
+  <path d="M155 250 L155 305 L245 305 L245 250" fill="none" stroke="#B8B8BC" stroke-width="1.5"/>
+  <!-- Logo -->
+  <g transform="translate(200,220)">
+    <rect x="-22" y="-17" width="44" height="34" rx="6" fill="rgba(220,208,188,0.15)" stroke="#DCD0BC" stroke-width="1.5"/>
+    <text x="0" y="5" font-family="Georgia, serif" font-style="italic" font-weight="700" font-size="15" text-anchor="middle" fill="#A89572">ID</text>
+  </g>
+  <text x="200" y="278" font-family="Inter, system-ui" font-weight="700" font-size="9" letter-spacing="3" text-anchor="middle" fill="#9A9A9E">BARN</text>
+</svg>

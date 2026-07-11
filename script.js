@@ -1732,6 +1732,7 @@ async function handleOAuthReturn() {
     return;
   }
   if (hash.indexOf('access_token') === -1) return;
+  if (hash.indexOf('type=recovery') !== -1) return; // recovery-länk — hanteras av webHandlePasswordRecovery
   const params = new URLSearchParams(hash);
   const access = params.get('access_token');
   const refresh = params.get('refresh_token');
@@ -3896,159 +3897,263 @@ function closeMobileMenu() {
 //  SIZE GUIDE MODAL
 // ═══════════════════════════════════════════════════════════
 let sizeGuideActive = 'man';
-let sgPicks = { shoulders: null, waist: null, fit: null }; // wizard state
+
+/* ═══════════════════════════════════════════════════════════
+   HITTA DIN STORLEK — stegvis wizard (Simons förlaga)
+   6 steg: bas → axlar → bröst → midja → passform → resultat.
+   Illustrationer med blå markering, progressbar, visuell skala.
+   ═══════════════════════════════════════════════════════════ */
+
+let sgW = { step: 0, height: null, weight: null, cat: 'man', shoulders: 1, chest: 1, waist: 1, fit: 1, len: 1 };
+
+const SGW_YOUTH = [
+  ['8-9 år','128-134 cm'],['9-10 år','134-140 cm'],['10-11 år','140-146 cm'],['11-12 år','146-152 cm'],
+  ['12-13 år','152-158 cm'],['13-14 år','158-164 cm'],['14-15 år','164-170 cm'],['15-16 år','170-176 cm']
+];
+const SGW_ADULT = {
+  man:    [['S','160-168 cm'],['M','168-176 cm'],['L','176-184 cm'],['XL','184-192 cm'],['XXL','192+ cm']],
+  kvinna: [['S','152-160 cm'],['M','160-168 cm'],['L','168-176 cm'],['XL','176-184 cm'],['XXL','184+ cm']]
+};
+const SGW_KIDS = [['1-2 år','80-95 cm'],['3-4 år','95-110 cm']];
 
 function openSizeGuide(category) {
-  // If called from product modal, default to that product's size category
-  if (!category && modalProduct && modalProduct.sizeCategory) {
+  if (!category && typeof modalProduct !== 'undefined' && modalProduct && modalProduct.sizeCategory) {
     category = modalProduct.sizeCategory;
   }
-  if (!category || !SIZE_GUIDE[category]) category = 'man';
-  sizeGuideActive = category;
-  renderSizeGuideTabs();
-  renderSizeGuideTable();
-  // Reset wizard state
-  sgPicks = { shoulders: null, waist: null, fit: null };
-  const heightInput = document.getElementById('sgHeight');
-  if (heightInput) heightInput.value = '';
-  document.querySelectorAll('.sg-option.selected').forEach(b => b.classList.remove('selected'));
-  const resultEl = document.getElementById('sgResult');
-  if (resultEl) resultEl.style.display = 'none';
-  document.getElementById('sizeGuideModal').classList.add('open');
-  // Pre-fill height if user has saved profile data
+  let cat = 'man';
+  if (category) {
+    if (category.includes('kvinna')) cat = 'kvinna';
+    else if (category.includes('ungdom')) cat = 'ungdom';
+    else if (category.includes('barn') || category.includes('smabarn')) cat = 'barn';
+  }
+  sizeGuideActive = (category && SIZE_GUIDE[category]) ? category : 'man';
+  sgW = { step: 0, height: null, weight: null, cat: cat, shoulders: 1, chest: 1, waist: 1, fit: 1, len: 1 };
   try {
-    const profile = JSON.parse(localStorage.getItem('id_user_profile') || '{}');
-    if (profile.height && heightInput) heightInput.value = profile.height;
+    const p = JSON.parse(localStorage.getItem('id_user_profile') || '{}');
+    if (p.height) sgW.height = parseInt(p.height);
   } catch(e) {}
+  sgwHideTable();
+  renderSgStep();
+  document.getElementById('sizeGuideModal').classList.add('open');
 }
 function closeSizeGuide() {
   document.getElementById('sizeGuideModal').classList.remove('open');
 }
 
-// Wizard option selector
-function selectSgOption(group, value, btn) {
-  sgPicks[group] = value;
-  // Highlight selected in this group
-  const groupEl = btn.parentElement;
-  groupEl.querySelectorAll('.sg-option').forEach(b => b.classList.remove('selected'));
-  btn.classList.add('selected');
-  updateSizeRec();
+function sgwShowTable() {
+  renderSizeGuideTabs();
+  renderSizeGuideTable();
+  const st = document.getElementById('sgwStage'); if (st) st.style.display = 'none';
+  const tv = document.getElementById('sgwTableView'); if (tv) tv.style.display = 'block';
+}
+function sgwHideTable() {
+  const tv = document.getElementById('sgwTableView'); if (tv) tv.style.display = 'none';
+  const st = document.getElementById('sgwStage'); if (st) st.style.display = 'flex';
+}
+// Bakåtkompatibel alias (äldre knappar kan peka hit)
+function toggleSgTable() { sgwShowTable(); }
+
+function sgwNext() { if (sgW.step < 5) { sgW.step++; renderSgStep(); } }
+function sgwBack() { if (sgW.step > 0) { sgW.step--; renderSgStep(); } }
+function sgwSet(key, val) { sgW[key] = val; renderSgStep(); }
+function sgwReset() { sgW = { step: 0, height: null, weight: null, cat: sgW.cat, shoulders: 1, chest: 1, waist: 1, fit: 1, len: 1 }; renderSgStep(); }
+
+/* ── Illustrationer (linjestil med blå markering, som förlagan) ── */
+function sgwTorsoFront(mark) {
+  const blue = '#1D4ED8';
+  return `<svg width="190" height="200" viewBox="0 0 200 210" fill="none">
+    <path d="M78 12 Q100 2 122 12 L124 30 Q140 34 158 44 Q172 52 174 70 L178 120 Q179 138 172 156 L166 200 M34 200 L28 156 Q21 138 22 120 L26 70 Q28 52 42 44 Q60 34 76 30 Z"
+      transform="translate(0,4)" stroke="#374151" stroke-width="2" stroke-linecap="round" fill="none"/>
+    <path d="M85 46 Q100 52 115 46" stroke="#374151" stroke-width="1.5" fill="none" opacity="0.5"/>
+    <path d="M70 92 Q84 100 98 94 M102 94 Q116 100 130 92" stroke="#374151" stroke-width="1.5" fill="none" opacity="0.45"/>
+    <circle cx="100" cy="128" r="1.8" fill="#374151" opacity="0.5"/>
+    ${mark === 'shoulders' ? `
+      <path d="M28 62 Q34 44 52 36" stroke="${blue}" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M172 62 Q166 44 148 36" stroke="${blue}" stroke-width="3" fill="none" stroke-linecap="round"/>` : ''}
+    ${mark === 'waist' ? `
+      <ellipse cx="100" cy="140" rx="62" ry="12" stroke="${blue}" stroke-width="2.5" fill="none"/>` : ''}
+  </svg>`;
+}
+function sgwTorsoSide() {
+  const blue = '#1D4ED8';
+  return `<svg width="150" height="200" viewBox="0 0 150 210" fill="none">
+    <path d="M60 8 Q80 4 88 16 Q94 26 90 38 L86 52 Q108 60 114 82 Q118 100 112 126 L108 168 Q106 190 100 206 M60 206 Q52 180 50 150 L46 100 Q42 70 52 52 L58 38 Q52 24 60 8"
+      stroke="#374151" stroke-width="2" stroke-linecap="round" fill="none"/>
+    <ellipse cx="80" cy="86" rx="58" ry="11" stroke="${blue}" stroke-width="2.5" fill="none"/>
+  </svg>`;
 }
 
-// Calculate recommended size
-function updateSizeRec() {
-  const height = parseInt(document.getElementById('sgHeight')?.value);
-  if (!height || isNaN(height) || height < 80 || height > 220) {
-    document.getElementById('sgResult').style.display = 'none';
-    return;
-  }
-  // Need at least 2 wizard picks to recommend
-  const pickCount = Object.values(sgPicks).filter(Boolean).length;
-  if (pickCount < 2) {
-    document.getElementById('sgResult').style.display = 'none';
-    return;
-  }
-  const rec = calculateSize(height, sgPicks, sizeGuideActive);
-  document.getElementById('sgResultSize').textContent = rec.size;
-  document.getElementById('sgResultCat').textContent = rec.category;
-  document.getElementById('sgResultReason').innerHTML = rec.reason;
-  document.getElementById('sgResult').style.display = 'block';
-  // Auto-select on product if modal also open
-  if (modalProduct && modalProduct.sizes && modalProduct.sizes.includes(rec.size)) {
-    if (typeof selectSize === 'function') {
-      // Don't auto-trigger to avoid confusion, just visually highlight
-    }
-  }
-}
+/* ── Beräkning ── */
+function sgwCalc() {
+  const h = sgW.height || 175;
+  const shapeAdj = (sgW.shoulders - 1) * 0.34 + (sgW.chest - 1) * 0.34 + (sgW.waist - 1) * 0.34;
+  // Tightare drar ett halvt steg ner, lösare trekvarts upp (asymmetriskt med flit)
+  const fitAdj = sgW.fit === 0 ? -0.5 : sgW.fit === 2 ? 0.75 : 0;
+  let list, idx;
 
-function calculateSize(height, picks, category) {
-  // Determine base category from height + picks
-  const cat = category || 'man';
-  let sizes, catLabel;
-
-  // Choose size set + label
-  if (cat.includes('barn') || height < 110) {
-    sizes = ['1-2 år','3-4 år'];
-    catLabel = 'Barn';
-    // Pick by height alone for kids
-    const sz = height < 95 ? '1-2 år' : '3-4 år';
-    return {
-      size: sz,
-      category: catLabel,
-      reason: `Baserat på din längd <strong>${height} cm</strong>. För barn väljer vi storlek främst efter längd.`
-    };
-  }
-  if (cat.includes('ungdom') || (height >= 110 && height < 165)) {
-    sizes = ['S','M','L','XL','XXL'];
-    catLabel = 'Ungdom';
-  } else if (cat === 'kvinna') {
-    sizes = ['S','M','L','XL','XXL'];
-    catLabel = 'Dam';
-  } else if (cat.includes('hoodie')) {
-    sizes = cat.includes('vuxen') ? ['S','M','L','XL','XXL']
-          : cat.includes('ungdom') ? ['S','M','L','XL']
-          : ['1-2 år','3-4 år'];
-    catLabel = cat.includes('vuxen') ? 'Vuxen huvtröja' : cat.includes('ungdom') ? 'Ungdom huvtröja' : 'Barn huvtröja';
+  if (sgW.cat === 'barn' || h < 110) {
+    list = SGW_KIDS;
+    idx = h < 95 ? 0 : 1;
+  } else if (sgW.cat === 'ungdom') {
+    list = SGW_YOUTH;
+    idx = (Math.min(Math.max(h, 128), 176) - 131) / 6 + shapeAdj + fitAdj;
   } else {
-    sizes = ['S','M','L','XL','XXL'];
-    catLabel = 'Herr';
+    const isDam = sgW.cat === 'kvinna';
+    list = SGW_ADULT[isDam ? 'kvinna' : 'man'];
+    const hh = isDam ? h + 8 : h;   // damskala ligger ~8 cm lägre
+    if (hh < 160)      idx = 0;
+    else if (hh < 168) idx = 0.5;
+    else if (hh < 176) idx = 1;
+    else if (hh < 184) idx = 2;
+    else if (hh < 192) idx = 3;
+    else               idx = 4;
+    // Viktjustering via BMI (om vikt angiven)
+    if (sgW.weight && sgW.weight > 25) {
+      const bmi = sgW.weight / Math.pow(h / 100, 2);
+      if (bmi < 19) idx -= 0.5;
+      else if (bmi > 30) idx += 1;
+      else if (bmi > 26) idx += 0.5;
+    }
+    idx += shapeAdj + fitAdj;
   }
-
-  // Map height + body type to size index
-  // Base index from height
-  let idx;
-  if (height < 160)       idx = 0;       // S
-  else if (height < 170)  idx = 0.5;     // S/M
-  else if (height < 178)  idx = 1;       // M
-  else if (height < 185)  idx = 2;       // L
-  else if (height < 192)  idx = 3;       // XL
-  else                    idx = 4;       // XXL
-
-  // Adjust for shoulders (broader = up 1 size)
-  if (picks.shoulders === 'broad')   idx += 1;
-  if (picks.shoulders === 'narrow')  idx -= 0.5;
-  // Adjust for waist
-  if (picks.waist === 'wide')    idx += 0.5;
-  if (picks.waist === 'narrow')  idx -= 0.5;
-  // Adjust for fit
-  if (picks.fit === 'tight')  idx -= 0.5;
-  if (picks.fit === 'loose')  idx += 1;
-  if (picks.fit === 'normal') idx += 0;
-
-  // Round to nearest valid index
-  idx = Math.max(0, Math.min(sizes.length - 1, Math.round(idx)));
-  const size = sizes[idx];
-
-  // Build reason text
-  const reasons = [];
-  reasons.push(`<strong>${height} cm</strong> + `);
-  const parts = [];
-  if (picks.shoulders) parts.push({
-    narrow: 'smala axlar',
-    normal: 'normala axlar',
-    broad: 'breda axlar'
-  }[picks.shoulders]);
-  if (picks.waist) parts.push({
-    narrow: 'smal midja',
-    normal: 'normal midja',
-    wide: 'rundare midja'
-  }[picks.waist]);
-  if (picks.fit) parts.push({
-    tight: 'tajt passform',
-    normal: 'normal passform',
-    loose: 'lös passform'
-  }[picks.fit]);
-  return {
-    size,
-    category: catLabel,
-    reason: reasons.join('') + parts.join(' + ') + ` → <strong>${size}</strong> ger dig den passform du letar efter.`
-  };
+  idx = Math.max(0, Math.min(list.length - 1, Math.round(idx)));
+  return { list, idx, label: list[idx][0], range: list[idx][1] };
 }
 
-function toggleSgTable() {
-  const det = document.getElementById('sgTableDetails');
-  if (det) det.open = !det.open;
-  if (det && det.open) det.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+/* ── Steg-renderare ── */
+function renderSgStep() {
+  const stage = document.getElementById('sgwStage');
+  if (!stage) return;
+  const fill = document.getElementById('sgwProgressFill');
+  if (fill) fill.style.width = ((sgW.step + 1) / 6 * 100) + '%';
+
+  const radios = (key, labels) => `
+    <div class="sgw-radios">
+      ${labels.map((l, i) => `
+        <button class="sgw-radio ${sgW[key] === i ? 'active' : ''}" onclick="sgwSet('${key}',${i})">
+          <span class="dot"></span><span>${l}</span>
+        </button>`).join('')}
+    </div>`;
+  const btnrow = (backFn, nextLabel, nextFn, nextDisabled) => `
+    <div class="sgw-btnrow">
+      <button class="sgw-btn-sec" onclick="${backFn}">${backFn === 'sgwShowTable()' ? 'Storlekstabell' : 'Tillbaka'}</button>
+      <button class="sgw-btn-pri" onclick="${nextFn}" ${nextDisabled ? 'disabled' : ''} id="sgwNextBtn">${nextLabel}</button>
+    </div>`;
+
+  if (sgW.step === 0) {
+    stage.innerHTML = `
+      <div class="sgw-title">Hitta din storlek</div>
+      <div class="sgw-sub">Fyll i din information och hitta din rekommenderade storlek</div>
+      <div class="sgw-field">
+        <label>Längd</label>
+        <input type="number" class="sgw-input" placeholder="Hur lång är du? (cm)" inputmode="numeric" min="80" max="220"
+          value="${sgW.height || ''}" oninput="sgW.height = parseInt(this.value) || null; const b = document.getElementById('sgwNextBtn'); if (b) b.disabled = !(sgW.height >= 80 && sgW.height <= 220);">
+      </div>
+      <div class="sgw-field">
+        <label>Vikt <span style="font-weight:400;color:#9CA3AF">(valfritt — ger säkrare träff)</span></label>
+        <input type="number" class="sgw-input" placeholder="Vad väger du? (kg)" inputmode="numeric" min="10" max="250"
+          value="${sgW.weight || ''}" oninput="sgW.weight = parseInt(this.value) || null;">
+      </div>
+      <div class="sgw-field">
+        <label>Kategori</label>
+        <div class="sgw-cats">
+          ${[['man','Herr'],['kvinna','Dam'],['ungdom','Ungdom'],['barn','Barn']].map(c =>
+            `<button class="sgw-cat ${sgW.cat === c[0] ? 'active' : ''}" onclick="sgwSet('cat','${c[0]}')">${c[1]}</button>`).join('')}
+        </div>
+      </div>
+      ${btnrow('sgwShowTable()', 'Fortsätt', 'sgwNext()', !(sgW.height >= 80 && sgW.height <= 220))}`;
+    return;
+  }
+  if (sgW.step === 1) {
+    stage.innerHTML = `
+      <div class="sgw-title">Dina axlar</div>
+      <div class="sgw-sub">Ange din axelbredd för att hitta rätt passform</div>
+      <div class="sgw-illu">${sgwTorsoFront('shoulders')}</div>
+      ${radios('shoulders', ['Smalare','Medel','Bredare'])}
+      ${btnrow('sgwBack()', 'Fortsätt', 'sgwNext()')}`;
+    return;
+  }
+  if (sgW.step === 2) {
+    stage.innerHTML = `
+      <div class="sgw-title">Ditt bröst</div>
+      <div class="sgw-sub">Ange din bröstform för att hitta rätt passform</div>
+      <div class="sgw-illu">${sgwTorsoSide()}</div>
+      ${radios('chest', ['Plattare','Medel','Bredare'])}
+      ${btnrow('sgwBack()', 'Fortsätt', 'sgwNext()')}`;
+    return;
+  }
+  if (sgW.step === 3) {
+    stage.innerHTML = `
+      <div class="sgw-title">Din midja</div>
+      <div class="sgw-sub">Ange din midjevidd för att hitta rätt passform</div>
+      <div class="sgw-illu">${sgwTorsoFront('waist')}</div>
+      ${radios('waist', ['Smalare','Medel','Bredare'])}
+      ${btnrow('sgwBack()', 'Fortsätt', 'sgwNext()')}`;
+    return;
+  }
+  if (sgW.step === 4) {
+    stage.innerHTML = `
+      <div class="sgw-title">Din önskade passform</div>
+      <div class="sgw-sub">Ange din önskade passform så hittar vi din rätta storlek</div>
+      <div class="sgw-field"><label>Passform</label>
+        <input type="range" class="sgw-slider" min="0" max="2" step="1" value="${sgW.fit}" oninput="sgW.fit = parseInt(this.value)">
+        <div class="sgw-slider-lbls"><span>Tightare</span><span class="mid">Medel</span><span>Lösare</span></div>
+      </div>
+      <div class="sgw-field"><label>Längd</label>
+        <input type="range" class="sgw-slider" min="0" max="2" step="1" value="${sgW.len}" oninput="sgW.len = parseInt(this.value)">
+        <div class="sgw-slider-lbls"><span>Kortare</span><span class="mid">Medel</span><span>Längre</span></div>
+      </div>
+      <div class="sgw-info">Längd hänvisar till plaggets kroppslängd, inte ärmlängden.</div>
+      ${btnrow('sgwBack()', 'Fortsätt', 'sgwNext()')}`;
+    return;
+  }
+  // Steg 5 — resultat
+  const rec = sgwCalc();
+  const from = Math.max(0, Math.min(rec.idx - 1, rec.list.length - 3));
+  const trio = rec.list.slice(from, from + 3);
+  const selIn = rec.idx - from;
+  const markerLeft = (selIn * 33.33 + 16.67) + '%';
+  const fitTxt = ['Tightare','Medel','Lösare'][sgW.fit];
+  const lenTip = sgW.len === 2 ? '<div class="sgw-info" style="margin-top:10px">Du ville ha ett längre plagg — överväg en storlek upp om du är mellan två.</div>'
+             : sgW.len === 0 ? '<div class="sgw-info" style="margin-top:10px">Du ville ha ett kortare plagg — håll dig till rekommendationen eller gå ner om du är mellan två.</div>' : '';
+  const canUse = (typeof modalProduct !== 'undefined' && modalProduct && modalProduct.sizes && modalProduct.sizes.includes(rec.label));
+  stage.innerHTML = `
+    <div class="sgw-title">Din rekommenderade storlek</div>
+    <div class="sgw-sub">Det finns en god chans att den här storleken kommer att passa dig bra!</div>
+    <div class="sgw-bigsize">${rec.label}</div>
+    <div class="sgw-scale">
+      <div class="sgw-marker" style="left:${markerLeft}">▼</div>
+      <div class="sgw-scale-bar">${trio.map((s, i) => `<div class="${i === selIn ? 'on' : ''}"></div>`).join('')}</div>
+      <div class="sgw-scale-lbls">${trio.map((s, i) => `<div class="${i === selIn ? 'on' : ''}">${s[0]}<br><span style="font-size:11px">${s[1]}</span></div>`).join('')}</div>
+    </div>
+    <div style="text-align:center;font-size:14px;color:#374151;margin-top:14px">Passformspreferens: <a href="javascript:void(0)" onclick="sgW.step=4;renderSgStep()" style="color:#111827;font-weight:600">${fitTxt}</a></div>
+    ${lenTip}
+    <div class="sgw-fb" id="sgwFb">
+      <button class="thumb" onclick="sgwFeedback(true)">👍</button>
+      <button class="thumb" onclick="sgwFeedback(false)">👎</button>
+      <button class="tbl" onclick="sgwShowTable()">Storlekstabell</button>
+    </div>
+    <div class="sgw-btnrow">
+      <button class="sgw-btn-sec" onclick="sgwBack()">Tillbaka</button>
+      <button class="sgw-btn-pri" style="background:#1D4ED8" onclick="${canUse ? `sgwUseSize('${rec.label}')` : 'closeSizeGuide()'}">${canUse ? 'Använd storleken' : 'Klar'}</button>
+    </div>
+    <div class="sgw-reset" onclick="sgwReset()">Återställ</div>`;
+}
+
+function sgwFeedback(good) {
+  try {
+    const log = JSON.parse(localStorage.getItem('id_sg_feedback') || '[]');
+    log.push({ good, rec: sgwCalc().label, data: { h: sgW.height, w: sgW.weight, cat: sgW.cat }, ts: new Date().toISOString() });
+    localStorage.setItem('id_sg_feedback', JSON.stringify(log.slice(-100)));
+  } catch(e) {}
+  const fb = document.getElementById('sgwFb');
+  if (fb) fb.innerHTML = `<span style="font-size:13px;color:#6B7280">${good ? 'Tack! 💙' : 'Tack — vi använder din feedback för att förbättra guiden.'}</span>`;
+}
+
+function sgwUseSize(size) {
+  if (typeof selectSize === 'function') selectSize(size);
+  closeSizeGuide();
+  if (typeof showToast === 'function') showToast('✓ Storlek ' + size + ' vald');
 }
 function renderSizeGuideTabs() {
   const tabs = document.getElementById('sizeGuideTabs');
