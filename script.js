@@ -959,6 +959,15 @@ function openProductModal(id) {
   document.getElementById('pmName').textContent = p.name;
   document.getElementById('pmDesc').textContent = p.desc;
   document.getElementById('pmPrice').textContent = formatPrice(p.price);
+  // Lägg i varukorg-knappen: alltid synlig — tydligt låst när butiken är stängd
+  const pmAddBtn = document.getElementById('pmAddBtn');
+  if (pmAddBtn) {
+    const shopIsOpen = (typeof isShopOpen === 'function') ? isShopOpen() : true;
+    pmAddBtn.disabled = !shopIsOpen;
+    pmAddBtn.textContent = shopIsOpen ? 'Lägg i varukorg' : '🔒 Butiken öppnar snart';
+    pmAddBtn.style.opacity = shopIsOpen ? '1' : '0.6';
+    pmAddBtn.style.cursor = shopIsOpen ? 'pointer' : 'not-allowed';
+  }
   document.getElementById('pmQty').textContent = modalQuantity;
   const sizesEl = document.getElementById('pmSizes');
   if (p.sizes) {

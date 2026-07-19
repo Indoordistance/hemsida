@@ -1435,7 +1435,7 @@
           <button onclick="modalQty(1)">+</button>
         </div>
       </div>
-      <button class="btn-primary" onclick="addModalToCart()">Lägg i varukorg</button>
+      <button class="btn-primary" id="pmAddBtn" onclick="addModalToCart()">Lägg i varukorg</button>
       <div class="product-modal-meta">
         <span>✓ Fri frakt över 500 kr</span>
         <span>✓ Leverans 3-5 dgr</span>
@@ -1588,6 +1588,12 @@
   <div class="modal-content size-guide-modal" style="max-width:460px;padding:0;overflow:hidden">
     <style>
       /* Hitta din storlek — wizard (förlaga: stegvis flöde med illustrationer) */
+      /* Guiden är ALLTID ljus — oavsett sidans mörka läge — annars försvinner texterna */
+      #sizeGuideModal .modal-content{background:#fff !important;color:#111827 !important}
+      #sizeGuideModal .sgw-title,#sizeGuideModal .sgw-bigsize{color:#111827 !important}
+      #sizeGuideModal .sgw-sub,#sizeGuideModal .sgw-slider-lbls span{color:#6B7280 !important}
+      #sizeGuideModal .sgw-slider-lbls .mid,#sizeGuideModal .sgw-scale-lbls>div.on{color:#111827 !important}
+      #sizeGuideModal .size-guide-table,#sizeGuideModal .size-guide-table td,#sizeGuideModal .size-guide-table th{color:#111827 !important}
       .sgw-top{display:flex;align-items:center;gap:14px;padding:18px 18px 6px}
       .sgw-progress{flex:1;height:4px;background:#E5E7EB;border-radius:2px;overflow:hidden}
       .sgw-progress>div{height:100%;background:#111827;border-radius:2px;transition:width .3s ease}
